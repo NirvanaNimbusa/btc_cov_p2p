@@ -1,0 +1,300 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/checkqueue.h</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - checkqueue.h<span style="font-size: 80%;"> (source / <a href="checkqueue.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">58</td>
+            <td class="headerCovTableEntry">59</td>
+            <td class="headerCovTableEntryHi">98.3 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2018-09-20 03:23:27</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntry">5</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">42</td>
+            <td class="headerCovTableEntry">58</td>
+            <td class="headerCovTableEntryLo">72.4 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2012-2018 The Bitcoin Core developers</a>
+<span class="lineNum">       2 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       3 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       4 </span>                :            : 
+<span class="lineNum">       5 </span>                :            : #ifndef BITCOIN_CHECKQUEUE_H
+<span class="lineNum">       6 </span>                :            : #define BITCOIN_CHECKQUEUE_H
+<span class="lineNum">       7 </span>                :            : 
+<span class="lineNum">       8 </span>                :            : #include &lt;sync.h&gt;
+<span class="lineNum">       9 </span>                :            : 
+<span class="lineNum">      10 </span>                :            : #include &lt;algorithm&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;vector&gt;
+<span class="lineNum">      12 </span>                :            : 
+<span class="lineNum">      13 </span>                :            : #include &lt;boost/thread/condition_variable.hpp&gt;
+<span class="lineNum">      14 </span>                :            : #include &lt;boost/thread/mutex.hpp&gt;
+<span class="lineNum">      15 </span>                :            : 
+<span class="lineNum">      16 </span>                :            : template &lt;typename T&gt;
+<span class="lineNum">      17 </span>                :            : class CCheckQueueControl;
+<span class="lineNum">      18 </span>                :            : 
+<span class="lineNum">      19 </span>                :            : /**
+<span class="lineNum">      20 </span>                :            :  * Queue for verifications that have to be performed.
+<span class="lineNum">      21 </span>                :            :   * The verifications are represented by a type T, which must provide an
+<span class="lineNum">      22 </span>                :            :   * operator(), returning a bool.
+<span class="lineNum">      23 </span>                :            :   *
+<span class="lineNum">      24 </span>                :            :   * One thread (the master) is assumed to push batches of verifications
+<span class="lineNum">      25 </span>                :            :   * onto the queue, where they are processed by N-1 worker threads. When
+<span class="lineNum">      26 </span>                :            :   * the master is done adding work, it temporarily joins the worker pool
+<span class="lineNum">      27 </span>                :            :   * as an N'th worker, until all jobs are done.
+<span class="lineNum">      28 </span>                :            :   */
+<span class="lineNum">      29 </span>                :            : template &lt;typename T&gt;
+<span class="lineNum">      30 </span>                :            : class CCheckQueue
+<span class="lineNum">      31 </span>                :            : {
+<span class="lineNum">      32 </span>                :            : private:
+<span class="lineNum">      33 </span>                :            :     //! Mutex to protect the inner state
+<span class="lineNum">      34 </span>                :            :     boost::mutex mutex;
+<span class="lineNum">      35 </span>                :            : 
+<span class="lineNum">      36 </span>                :            :     //! Worker threads block on this when out of work
+<span class="lineNum">      37 </span>                :            :     boost::condition_variable condWorker;
+<span class="lineNum">      38 </span>                :            : 
+<span class="lineNum">      39 </span>                :            :     //! Master thread blocks on this when out of work
+<span class="lineNum">      40 </span>                :            :     boost::condition_variable condMaster;
+<span class="lineNum">      41 </span>                :            : 
+<span class="lineNum">      42 </span>                :            :     //! The queue of elements to be processed.
+<span class="lineNum">      43 </span>                :            :     //! As the order of booleans doesn't matter, it is used as a LIFO (stack)
+<span class="lineNum">      44 </span>                :            :     std::vector&lt;T&gt; queue;
+<span class="lineNum">      45 </span>                :            : 
+<span class="lineNum">      46 </span>                :            :     //! The number of workers (including the master) that are idle.
+<span class="lineNum">      47 </span>                :            :     int nIdle;
+<span class="lineNum">      48 </span>                :            : 
+<span class="lineNum">      49 </span>                :            :     //! The total number of workers (including the master).
+<span class="lineNum">      50 </span>                :            :     int nTotal;
+<span class="lineNum">      51 </span>                :            : 
+<span class="lineNum">      52 </span>                :            :     //! The temporary evaluation result.
+<span class="lineNum">      53 </span>                :            :     bool fAllOk;
+<span class="lineNum">      54 </span>                :            : 
+<span class="lineNum">      55 </span>                :            :     /**
+<span class="lineNum">      56 </span>                :            :      * Number of verifications that haven't completed yet.
+<span class="lineNum">      57 </span>                :            :      * This includes elements that are no longer queued, but still in the
+<span class="lineNum">      58 </span>                :            :      * worker's own batches.
+<span class="lineNum">      59 </span>                :            :      */
+<span class="lineNum">      60 </span>                :            :     unsigned int nTodo;
+<span class="lineNum">      61 </span>                :            : 
+<span class="lineNum">      62 </span>                :            :     //! The maximum number of elements to be processed in one batch
+<span class="lineNum">      63 </span>                :            :     unsigned int nBatchSize;
+<span class="lineNum">      64 </span>                :            : 
+<span class="lineNum">      65 </span>                :            :     /** Internal function that does bulk of the verification work. */
+<span class="lineNum">      66 </span>                :<span class="lineCov">        170 :     bool Loop(bool fMaster = false)</span>
+<span class="lineNum">      67 </span>                :            :     {
+<span class="lineNum">      68 </span>        [<span class="branchCov" title="Branch 0 was taken 163 times"> + </span><span class="branchCov" title="Branch 1 was taken 7 times"> + </span>]:<span class="lineCov">        170 :         boost::condition_variable&amp; cond = fMaster ? condMaster : condWorker;</span>
+<span class="lineNum">      69 </span>                :<span class="lineCov">        170 :         std::vector&lt;T&gt; vChecks;</span>
+<span class="lineNum">      70 </span>        [<span class="branchCov" title="Branch 1 was taken 170 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        170 :         vChecks.reserve(nBatchSize);</span>
+<span class="lineNum">      71 </span>                :            :         unsigned int nNow = 0;
+<span class="lineNum">      72 </span>                :            :         bool fOk = true;
+<span class="lineNum">      73 </span>                :            :         do {
+<span class="lineNum">      74 </span>                :            :             {
+<span class="lineNum">      75 </span>                :<span class="lineCov">          7 :                 boost::unique_lock&lt;boost::mutex&gt; lock(mutex);</span>
+<span class="lineNum">      76 </span>                :            :                 // first do the clean-up of the previous loop run (allowing us to do it in the same critsect)
+<span class="lineNum">      77 </span>        [<span class="branchCov" title="Branch 0 was taken 11064 times"> + </span><span class="branchCov" title="Branch 1 was taken 170 times"> + </span>]:<span class="lineCov">      11234 :                 if (nNow) {</span>
+<span class="lineNum">      78 </span>                :<span class="lineCov">      11064 :                     fAllOk &amp;= fOk;</span>
+<span class="lineNum">      79 </span>                :<span class="lineCov">      11064 :                     nTodo -= nNow;</span>
+<span class="lineNum">      80 </span>[<span class="branchCov" title="Branch 0 was taken 10461 times"> + </span><span class="branchCov" title="Branch 1 was taken 603 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 10442 times"> + </span><span class="branchCov" title="Branch 3 was taken 19 times"> + </span>]:<span class="lineCov">      11064 :                     if (nTodo == 0 &amp;&amp; !fMaster)</span>
+<span class="lineNum">      81 </span>                :            :                         // We processed the last element; inform the master it can exit and return the result
+<span class="lineNum">      82 </span>                :<span class="lineCov">      10442 :                         condMaster.notify_one();</span>
+<span class="lineNum">      83 </span>                :            :                 } else {
+<span class="lineNum">      84 </span>                :            :                     // first iteration
+<span class="lineNum">      85 </span>                :<span class="lineCov">      11234 :                     nTotal++;</span>
+<span class="lineNum">      86 </span>                :            :                 }
+<span class="lineNum">      87 </span>                :            :                 // logically, the do loop starts here
+<span class="lineNum">      88 </span>        [<span class="branchCov" title="Branch 0 was taken 11037 times"> + </span><span class="branchCov" title="Branch 1 was taken 11064 times"> + </span>]:<span class="lineCov">      22101 :                 while (queue.empty()) {</span>
+<span class="lineNum">      89 </span>[<span class="branchCov" title="Branch 0 was taken 187 times"> + </span><span class="branchCov" title="Branch 1 was taken 10850 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 163 times"> + </span><span class="branchCov" title="Branch 3 was taken 24 times"> + </span>]:<span class="lineCov">      11037 :                     if (fMaster &amp;&amp; nTodo == 0) {</span>
+<span class="lineNum">      90 </span>                :<span class="lineCov">        163 :                         nTotal--;</span>
+<span class="lineNum">      91 </span>                :<span class="lineCov">        163 :                         bool fRet = fAllOk;</span>
+<span class="lineNum">      92 </span>                :            :                         // reset the status for new work later
+<span class="lineNum">      93 </span>                :            :                         if (fMaster)
+<span class="lineNum">      94 </span>                :<span class="lineCov">        163 :                             fAllOk = true;</span>
+<span class="lineNum">      95 </span>                :            :                         // return the current status
+<span class="lineNum">      96 </span>                :<span class="lineCov">        163 :                         return fRet;</span>
+<span class="lineNum">      97 </span>                :            :                     }
+<span class="lineNum">      98 </span>                :<span class="lineCov">      10874 :                     nIdle++;</span>
+<span class="lineNum">      99 </span>        [<span class="branchCov" title="Branch 1 was taken 10867 times"> + </span><span class="branchCov" title="Branch 2 was taken 7 times"> + </span>]:<span class="lineCov">      10874 :                     cond.wait(lock); // wait</span>
+<span class="lineNum">     100 </span>                :<span class="lineCov">      10867 :                     nIdle--;</span>
+<span class="lineNum">     101 </span>                :            :                 }
+<span class="lineNum">     102 </span>                :            :                 // Decide how many work units to process now.
+<span class="lineNum">     103 </span>                :            :                 // * Do not try to do everything at once, but aim for increasingly smaller batches so
+<span class="lineNum">     104 </span>                :            :                 //   all workers finish approximately simultaneously.
+<span class="lineNum">     105 </span>                :            :                 // * Try to account for idle jobs which will instantly start helping.
+<span class="lineNum">     106 </span>                :            :                 // * Don't do batches smaller than 1 (duh), or larger than nBatchSize.
+<span class="lineNum">     107 </span>                :<span class="lineCov">      44256 :                 nNow = std::max(1U, std::min(nBatchSize, (unsigned int)queue.size() / (nTotal + nIdle + 1)));</span>
+<span class="lineNum">     108 </span>        [<span class="branchCov" title="Branch 1 was taken 11064 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      11064 :                 vChecks.resize(nNow);</span>
+<span class="lineNum">     109 </span>        [<span class="branchCov" title="Branch 0 was taken 24154 times"> + </span><span class="branchCov" title="Branch 1 was taken 11064 times"> + </span>]:<span class="lineCov">      35218 :                 for (unsigned int i = 0; i &lt; nNow; i++) {</span>
+<span class="lineNum">     110 </span>                :            :                     // We want the lock on the mutex to be as short as possible, so swap jobs from the global
+<span class="lineNum">     111 </span>                :            :                     // queue to the local batch vector instead of copying.
+<span class="lineNum">     112 </span>                :<span class="lineCov">      24154 :                     vChecks[i].swap(queue.back());</span>
+<span class="lineNum">     113 </span>                :<span class="lineCov">      48308 :                     queue.pop_back();</span>
+<span class="lineNum">     114 </span>                :            :                 }
+<span class="lineNum">     115 </span>                :            :                 // Check whether we need to do work at all
+<span class="lineNum">     116 </span>                :<span class="lineCov">      11064 :                 fOk = fAllOk;</span>
+<span class="lineNum">     117 </span>                :            :             }
+<span class="lineNum">     118 </span>                :            :             // execute work
+<span class="lineNum">     119 </span>        [<span class="branchCov" title="Branch 0 was taken 24154 times"> + </span><span class="branchCov" title="Branch 1 was taken 11064 times"> + </span>]:<span class="lineCov">      35218 :             for (T&amp; check : vChecks)</span>
+<span class="lineNum">     120 </span>        [<span class="branchCov" title="Branch 0 was taken 24154 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      24154 :                 if (fOk)</span>
+<span class="lineNum">     121 </span>        [<span class="branchCov" title="Branch 1 was taken 24154 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      24154 :                     fOk = check();</span>
+<span class="lineNum">     122 </span>                :<span class="lineCov">      11064 :             vChecks.clear();</span>
+<span class="lineNum">     123 </span>                :            :         } while (true);
+<span class="lineNum">     124 </span>                :            :     }
+<span class="lineNum">     125 </span>                :            : 
+<span class="lineNum">     126 </span>                :            : public:
+<span class="lineNum">     127 </span>                :            :     //! Mutex to ensure only one concurrent CCheckQueueControl
+<span class="lineNum">     128 </span>                :            :     boost::mutex ControlMutex;
+<a name="129"><span class="lineNum">     129 </span>                :            : </a>
+<span class="lineNum">     130 </span>                :            :     //! Create a new check queue
+<span class="lineNum">     131 </span>[<span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]:<span class="lineCov">          1 :     explicit CCheckQueue(unsigned int nBatchSizeIn) : nIdle(0), nTotal(0), fAllOk(true), nTodo(0), nBatchSize(nBatchSizeIn) {}</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     132 </span>                :            : 
+<span class="lineNum">     133 </span>                :            :     //! Worker thread
+<span class="lineNum">     134 </span>                :            :     void Thread()
+<span class="lineNum">     135 </span>                :            :     {
+<span class="lineNum">     136 </span>                :<span class="lineCov">          7 :         Loop();</span>
+<span class="lineNum">     137 </span>                :            :     }
+<span class="lineNum">     138 </span>                :            : 
+<span class="lineNum">     139 </span>                :            :     //! Wait until execution finishes, and return whether all evaluations were successful.
+<span class="lineNum">     140 </span>                :            :     bool Wait()
+<span class="lineNum">     141 </span>                :            :     {
+<span class="lineNum">     142 </span>        [<span class="branchCov" title="Branch 2 was taken 146 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        163 :         return Loop(true);</span>
+<span class="lineNum">     143 </span>                :            :     }
+<a name="144"><span class="lineNum">     144 </span>                :            : </a>
+<span class="lineNum">     145 </span>                :            :     //! Add a batch of checks to the queue
+<span class="lineNum">     146 </span>                :<span class="lineCov">      17488 :     void Add(std::vector&lt;T&gt;&amp; vChecks)</span>
+<span class="lineNum">     147 </span>                :            :     {
+<span class="lineNum">     148 </span>                :<span class="lineCov">      52464 :         boost::unique_lock&lt;boost::mutex&gt; lock(mutex);</span>
+<span class="lineNum">     149 </span>        [<span class="branchCov" title="Branch 0 was taken 24154 times"> + </span><span class="branchCov" title="Branch 1 was taken 17488 times"> + </span>]:<span class="lineCov">      41642 :         for (T&amp; check : vChecks) {</span>
+<span class="lineNum">     150 </span>                :<span class="lineNoCov">          0 :             queue.push_back(T());</span>
+<span class="lineNum">     151 </span>                :<span class="lineCov">      24154 :             check.swap(queue.back());</span>
+<span class="lineNum">     152 </span>                :            :         }
+<span class="lineNum">     153 </span>                :<span class="lineCov">      17488 :         nTodo += vChecks.size();</span>
+<span class="lineNum">     154 </span>        [<span class="branchCov" title="Branch 0 was taken 10822 times"> + </span><span class="branchCov" title="Branch 1 was taken 6666 times"> + </span>]:<span class="lineCov">      17488 :         if (vChecks.size() == 1)</span>
+<span class="lineNum">     155 </span>                :<span class="lineCov">      10822 :             condWorker.notify_one();</span>
+<span class="lineNum">     156 </span>        [<span class="branchCov" title="Branch 0 was taken 6666 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       6666 :         else if (vChecks.size() &gt; 1)</span>
+<span class="lineNum">     157 </span>                :<span class="lineCov">       6666 :             condWorker.notify_all();</span>
+<a name="158"><span class="lineNum">     158 </span>                :<span class="lineCov">      17488 :     }</span></a>
+<span class="lineNum">     159 </span>                :            : 
+<span class="lineNum">     160 </span>                :<span class="lineCov">          1 :     ~CCheckQueue()</span>
+<span class="lineNum">     161 </span>                :            :     {
+<span class="lineNum">     162 </span>                :<span class="lineCov">          1 :     }</span>
+<span class="lineNum">     163 </span>                :            : 
+<span class="lineNum">     164 </span>                :            : };
+<span class="lineNum">     165 </span>                :            : 
+<span class="lineNum">     166 </span>                :            : /**
+<span class="lineNum">     167 </span>                :            :  * RAII-style controller object for a CCheckQueue that guarantees the passed
+<span class="lineNum">     168 </span>                :            :  * queue is finished before continuing.
+<span class="lineNum">     169 </span>                :            :  */
+<span class="lineNum">     170 </span>                :            : template &lt;typename T&gt;
+<span class="lineNum">     171 </span>                :            : class CCheckQueueControl
+<span class="lineNum">     172 </span>                :            : {
+<span class="lineNum">     173 </span>                :            : private:
+<span class="lineNum">     174 </span>                :            :     CCheckQueue&lt;T&gt; * const pqueue;
+<span class="lineNum">     175 </span>                :            :     bool fDone;
+<span class="lineNum">     176 </span>                :            : 
+<span class="lineNum">     177 </span>                :            : public:
+<span class="lineNum">     178 </span>                :            :     CCheckQueueControl() = delete;
+<span class="lineNum">     179 </span>                :            :     CCheckQueueControl(const CCheckQueueControl&amp;) = delete;
+<span class="lineNum">     180 </span>                :            :     CCheckQueueControl&amp; operator=(const CCheckQueueControl&amp;) = delete;
+<span class="lineNum">     181 </span>                :<span class="lineCov">        163 :     explicit CCheckQueueControl(CCheckQueue&lt;T&gt; * const pqueueIn) : pqueue(pqueueIn), fDone(false)</span>
+<span class="lineNum">     182 </span>                :            :     {
+<span class="lineNum">     183 </span>                :            :         // passed queue is supposed to be unused, or nullptr
+<span class="lineNum">     184 </span>        [<span class="branchCov" title="Branch 0 was taken 163 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        163 :         if (pqueue != nullptr) {</span>
+<span class="lineNum">     185 </span>        [<span class="branchCov" title="Branch 1 was taken 163 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">        163 :             ENTER_CRITICAL_SECTION(pqueue-&gt;ControlMutex);</span>
+<span class="lineNum">     186 </span>                :            :         }
+<span class="lineNum">     187 </span>                :            :     }
+<span class="lineNum">     188 </span>                :            : 
+<span class="lineNum">     189 </span>                :            :     bool Wait()
+<span class="lineNum">     190 </span>                :            :     {
+<span class="lineNum">     191 </span>[<span class="branchCov" title="Branch 0 was taken 17 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 146 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">        163 :         if (pqueue == nullptr)</span>
+<span class="lineNum">     192 </span>                :            :             return true;
+<span class="lineNum">     193 </span>                :<span class="lineCov">        326 :         bool fRet = pqueue-&gt;Wait();</span>
+<span class="lineNum">     194 </span>                :<span class="lineCov">         17 :         fDone = true;</span>
+<span class="lineNum">     195 </span>                :            :         return fRet;
+<span class="lineNum">     196 </span>                :            :     }
+<span class="lineNum">     197 </span>                :            : 
+<span class="lineNum">     198 </span>                :            :     void Add(std::vector&lt;T&gt;&amp; vChecks)
+<span class="lineNum">     199 </span>                :            :     {
+<span class="lineNum">     200 </span>        [<span class="branchCov" title="Branch 0 was taken 17488 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      17488 :         if (pqueue != nullptr)</span>
+<span class="lineNum">     201 </span>        [<span class="branchCov" title="Branch 1 was taken 17488 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      17488 :             pqueue-&gt;Add(vChecks);</span>
+<a name="202"><span class="lineNum">     202 </span>                :            :     }</a>
+<span class="lineNum">     203 </span>                :            : 
+<span class="lineNum">     204 </span>                :<span class="lineCov">        163 :     ~CCheckQueueControl()</span>
+<span class="lineNum">     205 </span>                :            :     {
+<span class="lineNum">     206 </span>        [<span class="branchCov" title="Branch 0 was taken 17 times"> + </span><span class="branchCov" title="Branch 1 was taken 146 times"> + </span>]:<span class="lineCov">        163 :         if (!fDone)</span>
+<span class="lineNum">     207 </span>                :            :             Wait();
+<span class="lineNum">     208 </span>        [<span class="branchCov" title="Branch 0 was taken 163 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">        163 :         if (pqueue != nullptr) {</span>
+<span class="lineNum">     209 </span>                :<span class="lineCov">        163 :             LEAVE_CRITICAL_SECTION(pqueue-&gt;ControlMutex);</span>
+<span class="lineNum">     210 </span>                :            :         }
+<span class="lineNum">     211 </span>                :<span class="lineCov">        163 :     }</span>
+<span class="lineNum">     212 </span>                :            : };
+<span class="lineNum">     213 </span>                :            : 
+<span class="lineNum">     214 </span>                :            : #endif // BITCOIN_CHECKQUEUE_H
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

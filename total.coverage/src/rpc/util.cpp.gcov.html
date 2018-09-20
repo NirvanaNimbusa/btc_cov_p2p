@@ -1,0 +1,216 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/rpc/util.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">src/rpc</a> - util.cpp<span style="font-size: 80%;"> (source / <a href="util.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">1</td>
+            <td class="headerCovTableEntry">66</td>
+            <td class="headerCovTableEntryLo">1.5 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2018-09-20 03:23:27</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntry">12</td>
+            <td class="headerCovTableEntryLo">16.7 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">2</td>
+            <td class="headerCovTableEntry">162</td>
+            <td class="headerCovTableEntryLo">1.2 %</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2017-2018 The Bitcoin Core developers</a>
+<span class="lineNum">       2 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       3 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       4 </span>                :            : 
+<span class="lineNum">       5 </span>                :            : #include &lt;key_io.h&gt;
+<span class="lineNum">       6 </span>                :            : #include &lt;keystore.h&gt;
+<span class="lineNum">       7 </span>                :            : #include &lt;rpc/protocol.h&gt;
+<span class="lineNum">       8 </span>                :            : #include &lt;rpc/util.h&gt;
+<span class="lineNum">       9 </span>                :            : #include &lt;tinyformat.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;utilstrencodings.h&gt;
+<a name="11"><span class="lineNum">      11 </span>                :            : </a>
+<span class="lineNum">      12 </span>                :            : // Converts a hex string to a public key if possible
+<span class="lineNum">      13 </span>                :<span class="lineNoCov">          0 : CPubKey HexToPubKey(const std::string&amp; hex_in)</span>
+<span class="lineNum">      14 </span>                :            : {
+<span class="lineNum">      15 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (!IsHex(hex_in)) {</span>
+<span class="lineNum">      16 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, &quot;Invalid public key: &quot; + hex_in);</span>
+<span class="lineNum">      17 </span>                :            :     }
+<span class="lineNum">      18 </span>                :<span class="lineNoCov">          0 :     CPubKey vchPubKey(ParseHex(hex_in));</span>
+<span class="lineNum">      19 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (!vchPubKey.IsFullyValid()) {</span>
+<span class="lineNum">      20 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, &quot;Invalid public key: &quot; + hex_in);</span>
+<span class="lineNum">      21 </span>                :            :     }
+<span class="lineNum">      22 </span>                :<span class="lineNoCov">          0 :     return vchPubKey;</span>
+<span class="lineNum">      23 </span>                :            : }
+<a name="24"><span class="lineNum">      24 </span>                :            : </a>
+<span class="lineNum">      25 </span>                :            : // Retrieves a public key for an address from the given CKeyStore
+<span class="lineNum">      26 </span>                :<span class="lineNoCov">          0 : CPubKey AddrToPubKey(CKeyStore* const keystore, const std::string&amp; addr_in)</span>
+<span class="lineNum">      27 </span>                :            : {
+<span class="lineNum">      28 </span>                :<span class="lineNoCov">          0 :     CTxDestination dest = DecodeDestination(addr_in);</span>
+<span class="lineNum">      29 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (!IsValidDestination(dest)) {</span>
+<span class="lineNum">      30 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, &quot;Invalid address: &quot; + addr_in);</span>
+<span class="lineNum">      31 </span>                :            :     }
+<span class="lineNum">      32 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     CKeyID key = GetKeyForDestination(*keystore, dest);</span>
+<span class="lineNum">      33 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (key.IsNull()) {</span>
+<span class="lineNum">      34 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf(&quot;%s does not refer to a key&quot;, addr_in));</span>
+<span class="lineNum">      35 </span>                :            :     }
+<span class="lineNum">      36 </span>                :<span class="lineNoCov">          0 :     CPubKey vchPubKey;</span>
+<span class="lineNum">      37 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (!keystore-&gt;GetPubKey(key, vchPubKey)) {</span>
+<span class="lineNum">      38 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, strprintf(&quot;no full public key for address %s&quot;, addr_in));</span>
+<span class="lineNum">      39 </span>                :            :     }
+<span class="lineNum">      40 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoExec" title="Branch 4 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (!vchPubKey.IsFullyValid()) {</span>
+<span class="lineNum">      41 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>]:<span class="lineNoCov">          0 :        throw JSONRPCError(RPC_INTERNAL_ERROR, &quot;Wallet contains an invalid public key&quot;);</span>
+<span class="lineNum">      42 </span>                :            :     }
+<span class="lineNum">      43 </span>                :<span class="lineNoCov">          0 :     return vchPubKey;</span>
+<span class="lineNum">      44 </span>                :            : }
+<a name="45"><span class="lineNum">      45 </span>                :            : </a>
+<span class="lineNum">      46 </span>                :            : // Creates a multisig redeemscript from a given list of public keys and number required.
+<span class="lineNum">      47 </span>                :<span class="lineNoCov">          0 : CScript CreateMultisigRedeemscript(const int required, const std::vector&lt;CPubKey&gt;&amp; pubkeys)</span>
+<span class="lineNum">      48 </span>                :            : {
+<span class="lineNum">      49 </span>                :            :     // Gather public keys
+<span class="lineNum">      50 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (required &lt; 1) {</span>
+<span class="lineNum">      51 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw JSONRPCError(RPC_INVALID_PARAMETER, &quot;a multisignature address must require at least one key to redeem&quot;);</span>
+<span class="lineNum">      52 </span>                :            :     }
+<span class="lineNum">      53 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if ((int)pubkeys.size() &lt; required) {</span>
+<span class="lineNum">      54 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw JSONRPCError(RPC_INVALID_PARAMETER, strprintf(&quot;not enough keys supplied (got %u keys, but need at least %d to redeem)&quot;, pubkeys.size(), required));</span>
+<span class="lineNum">      55 </span>                :            :     }
+<span class="lineNum">      56 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (pubkeys.size() &gt; 16) {</span>
+<span class="lineNum">      57 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw JSONRPCError(RPC_INVALID_PARAMETER, &quot;Number of keys involved in the multisignature address creation &gt; 16\nReduce the number&quot;);</span>
+<span class="lineNum">      58 </span>                :            :     }
+<span class="lineNum">      59 </span>                :            : 
+<span class="lineNum">      60 </span>                :<span class="lineNoCov">          0 :     CScript result = GetScriptForMultisig(required, pubkeys);</span>
+<span class="lineNum">      61 </span>                :            : 
+<span class="lineNum">      62 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (result.size() &gt; MAX_SCRIPT_ELEMENT_SIZE) {</span>
+<span class="lineNum">      63 </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 5 was not executed"> # </span><span class="branchNoExec" title="Branch 6 was not executed"> # </span>]:<span class="lineNoCov">          0 :         throw JSONRPCError(RPC_INVALID_PARAMETER, (strprintf(&quot;redeemScript exceeds size limit: %d &gt; %d&quot;, result.size(), MAX_SCRIPT_ELEMENT_SIZE)));</span>
+<span class="lineNum">      64 </span>                :            :     }
+<span class="lineNum">      65 </span>                :            : 
+<span class="lineNum">      66 </span>                :<span class="lineNoCov">          0 :     return result;</span>
+<span class="lineNum">      67 </span>                :            : }
+<span class="lineNum">      68 </span>                :            : 
+<span class="lineNum">      69 </span>                :            : class DescribeAddressVisitor : public boost::static_visitor&lt;UniValue&gt;
+<span class="lineNum">      70 </span>                :            : {
+<span class="lineNum">      71 </span>                :            : public:
+<a name="72"><span class="lineNum">      72 </span>                :            :     explicit DescribeAddressVisitor() {}</a>
+<span class="lineNum">      73 </span>                :            : 
+<span class="lineNum">      74 </span>                :<span class="lineNoCov">          0 :     UniValue operator()(const CNoDestination&amp; dest) const</span>
+<span class="lineNum">      75 </span>                :            :     {
+<span class="lineNum">      76 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         return UniValue(UniValue::VOBJ);</span>
+<a name="77"><span class="lineNum">      77 </span>                :            :     }</a>
+<span class="lineNum">      78 </span>                :            : 
+<span class="lineNum">      79 </span>                :<span class="lineNoCov">          0 :     UniValue operator()(const CKeyID&amp; keyID) const</span>
+<span class="lineNum">      80 </span>                :            :     {
+<span class="lineNum">      81 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         UniValue obj(UniValue::VOBJ);</span>
+<span class="lineNum">      82 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         obj.pushKV(&quot;isscript&quot;, false);</span>
+<span class="lineNum">      83 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         obj.pushKV(&quot;iswitness&quot;, false);</span>
+<span class="lineNum">      84 </span>                :<span class="lineNoCov">          0 :         return obj;</span>
+<a name="85"><span class="lineNum">      85 </span>                :            :     }</a>
+<span class="lineNum">      86 </span>                :            : 
+<span class="lineNum">      87 </span>                :<span class="lineNoCov">          0 :     UniValue operator()(const CScriptID&amp; scriptID) const</span>
+<span class="lineNum">      88 </span>                :            :     {
+<span class="lineNum">      89 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         UniValue obj(UniValue::VOBJ);</span>
+<span class="lineNum">      90 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         obj.pushKV(&quot;isscript&quot;, true);</span>
+<span class="lineNum">      91 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         obj.pushKV(&quot;iswitness&quot;, false);</span>
+<span class="lineNum">      92 </span>                :<span class="lineNoCov">          0 :         return obj;</span>
+<a name="93"><span class="lineNum">      93 </span>                :            :     }</a>
+<span class="lineNum">      94 </span>                :            : 
+<span class="lineNum">      95 </span>                :<span class="lineNoCov">          0 :     UniValue operator()(const WitnessV0KeyHash&amp; id) const</span>
+<span class="lineNum">      96 </span>                :            :     {
+<span class="lineNum">      97 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         UniValue obj(UniValue::VOBJ);</span>
+<span class="lineNum">      98 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         obj.pushKV(&quot;isscript&quot;, false);</span>
+<span class="lineNum">      99 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         obj.pushKV(&quot;iswitness&quot;, true);</span>
+<span class="lineNum">     100 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         obj.pushKV(&quot;witness_version&quot;, 0);</span>
+<span class="lineNum">     101 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         obj.pushKV(&quot;witness_program&quot;, HexStr(id.begin(), id.end()));</span>
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span>]
+<span class="lineNum">     102 </span>                :<span class="lineNoCov">          0 :         return obj;</span>
+<a name="103"><span class="lineNum">     103 </span>                :            :     }</a>
+<span class="lineNum">     104 </span>                :            : 
+<span class="lineNum">     105 </span>                :<span class="lineNoCov">          0 :     UniValue operator()(const WitnessV0ScriptHash&amp; id) const</span>
+<span class="lineNum">     106 </span>                :            :     {
+<span class="lineNum">     107 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         UniValue obj(UniValue::VOBJ);</span>
+<span class="lineNum">     108 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         obj.pushKV(&quot;isscript&quot;, true);</span>
+<span class="lineNum">     109 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         obj.pushKV(&quot;iswitness&quot;, true);</span>
+<span class="lineNum">     110 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         obj.pushKV(&quot;witness_version&quot;, 0);</span>
+<span class="lineNum">     111 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         obj.pushKV(&quot;witness_program&quot;, HexStr(id.begin(), id.end()));</span>
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span>]
+<span class="lineNum">     112 </span>                :<span class="lineNoCov">          0 :         return obj;</span>
+<a name="113"><span class="lineNum">     113 </span>                :            :     }</a>
+<span class="lineNum">     114 </span>                :            : 
+<span class="lineNum">     115 </span>                :<span class="lineNoCov">          0 :     UniValue operator()(const WitnessUnknown&amp; id) const</span>
+<span class="lineNum">     116 </span>                :            :     {
+<span class="lineNum">     117 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         UniValue obj(UniValue::VOBJ);</span>
+<span class="lineNum">     118 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         obj.pushKV(&quot;iswitness&quot;, true);</span>
+<span class="lineNum">     119 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         obj.pushKV(&quot;witness_version&quot;, (int)id.version);</span>
+<span class="lineNum">     120 </span>[<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineNoCov">          0 :         obj.pushKV(&quot;witness_program&quot;, HexStr(id.program, id.program + id.length));</span>
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span>]
+<span class="lineNum">     121 </span>                :<span class="lineNoCov">          0 :         return obj;</span>
+<span class="lineNum">     122 </span>                :            :     }
+<a name="123"><span class="lineNum">     123 </span>                :            : };</a>
+<span class="lineNum">     124 </span>                :            : 
+<span class="lineNum">     125 </span>                :<span class="lineNoCov">          0 : UniValue DescribeAddress(const CTxDestination&amp; dest)</span>
+<a name="126"><span class="lineNum">     126 </span>                :            : {</a>
+<span class="lineNum">     127 </span>                :<span class="lineNoCov">          0 :     return boost::apply_visitor(DescribeAddressVisitor(), dest);</span>
+<span class="lineNum">     128 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">          4 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

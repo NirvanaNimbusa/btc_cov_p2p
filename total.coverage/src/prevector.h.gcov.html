@@ -1,0 +1,894 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/prevector.h</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - prevector.h<span style="font-size: 80%;"> (source / <a href="prevector.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">123</td>
+            <td class="headerCovTableEntry">169</td>
+            <td class="headerCovTableEntryLo">72.8 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2018-09-20 03:23:27</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">11</td>
+            <td class="headerCovTableEntry">31</td>
+            <td class="headerCovTableEntryLo">35.5 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">274</td>
+            <td class="headerCovTableEntry">1178</td>
+            <td class="headerCovTableEntryLo">23.3 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2015-2018 The Bitcoin Core developers</a>
+<span class="lineNum">       2 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       3 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       4 </span>                :            : 
+<span class="lineNum">       5 </span>                :            : #ifndef BITCOIN_PREVECTOR_H
+<span class="lineNum">       6 </span>                :            : #define BITCOIN_PREVECTOR_H
+<span class="lineNum">       7 </span>                :            : 
+<span class="lineNum">       8 </span>                :            : #include &lt;assert.h&gt;
+<span class="lineNum">       9 </span>                :            : #include &lt;stdlib.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;stdint.h&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;string.h&gt;
+<span class="lineNum">      12 </span>                :            : 
+<span class="lineNum">      13 </span>                :            : #include &lt;cstddef&gt;
+<span class="lineNum">      14 </span>                :            : #include &lt;iterator&gt;
+<span class="lineNum">      15 </span>                :            : #include &lt;type_traits&gt;
+<span class="lineNum">      16 </span>                :            : 
+<span class="lineNum">      17 </span>                :            : #include &lt;compat.h&gt;
+<span class="lineNum">      18 </span>                :            : 
+<span class="lineNum">      19 </span>                :            : #pragma pack(push, 1)
+<span class="lineNum">      20 </span>                :            : /** Implements a drop-in replacement for std::vector&lt;T&gt; which stores up to N
+<span class="lineNum">      21 </span>                :            :  *  elements directly (without heap allocation). The types Size and Diff are
+<span class="lineNum">      22 </span>                :            :  *  used to store element counts, and can be any unsigned + signed type.
+<span class="lineNum">      23 </span>                :            :  *
+<span class="lineNum">      24 </span>                :            :  *  Storage layout is either:
+<span class="lineNum">      25 </span>                :            :  *  - Direct allocation:
+<span class="lineNum">      26 </span>                :            :  *    - Size _size: the number of used elements (between 0 and N)
+<span class="lineNum">      27 </span>                :            :  *    - T direct[N]: an array of N elements of type T
+<span class="lineNum">      28 </span>                :            :  *      (only the first _size are initialized).
+<span class="lineNum">      29 </span>                :            :  *  - Indirect allocation:
+<span class="lineNum">      30 </span>                :            :  *    - Size _size: the number of used elements plus N + 1
+<span class="lineNum">      31 </span>                :            :  *    - Size capacity: the number of allocated elements
+<span class="lineNum">      32 </span>                :            :  *    - T* indirect: a pointer to an array of capacity elements of type T
+<span class="lineNum">      33 </span>                :            :  *      (only the first _size are initialized).
+<span class="lineNum">      34 </span>                :            :  *
+<span class="lineNum">      35 </span>                :            :  *  The data type T must be movable by memmove/realloc(). Once we switch to C++,
+<span class="lineNum">      36 </span>                :            :  *  move constructors can be used instead.
+<span class="lineNum">      37 </span>                :            :  */
+<span class="lineNum">      38 </span>                :            : template&lt;unsigned int N, typename T, typename Size = uint32_t, typename Diff = int32_t&gt;
+<span class="lineNum">      39 </span>                :            : class prevector {
+<span class="lineNum">      40 </span>                :            : public:
+<span class="lineNum">      41 </span>                :            :     typedef Size size_type;
+<span class="lineNum">      42 </span>                :            :     typedef Diff difference_type;
+<span class="lineNum">      43 </span>                :            :     typedef T value_type;
+<span class="lineNum">      44 </span>                :            :     typedef value_type&amp; reference;
+<span class="lineNum">      45 </span>                :            :     typedef const value_type&amp; const_reference;
+<span class="lineNum">      46 </span>                :            :     typedef value_type* pointer;
+<span class="lineNum">      47 </span>                :            :     typedef const value_type* const_pointer;
+<span class="lineNum">      48 </span>                :            : 
+<span class="lineNum">      49 </span>                :            :     class iterator {
+<span class="lineNum">      50 </span>                :            :         T* ptr;
+<span class="lineNum">      51 </span>                :            :     public:
+<span class="lineNum">      52 </span>                :            :         typedef Diff difference_type;
+<span class="lineNum">      53 </span>                :            :         typedef T value_type;
+<span class="lineNum">      54 </span>                :            :         typedef T* pointer;
+<span class="lineNum">      55 </span>                :            :         typedef T&amp; reference;
+<span class="lineNum">      56 </span>                :            :         typedef std::random_access_iterator_tag iterator_category;
+<span class="lineNum">      57 </span>                :<span class="lineCov">     640298 :         iterator(T* ptr_) : ptr(ptr_) {}</span>
+<span class="lineNum">      58 </span>                :<span class="lineCov">     600231 :         T&amp; operator*() const { return *ptr; }</span>
+<span class="lineNum">      59 </span>                :            :         T* operator-&gt;() const { return ptr; }
+<span class="lineNum">      60 </span>                :            :         T&amp; operator[](size_type pos) { return ptr[pos]; }
+<span class="lineNum">      61 </span>                :            :         const T&amp; operator[](size_type pos) const { return ptr[pos]; }
+<span class="lineNum">      62 </span>                :<span class="lineNoCov">          0 :         iterator&amp; operator++() { ptr++; return *this; }</span>
+<span class="lineNum">      63 </span>                :            :         iterator&amp; operator--() { ptr--; return *this; }
+<span class="lineNum">      64 </span>                :            :         iterator operator++(int) { iterator copy(*this); ++(*this); return copy; }
+<span class="lineNum">      65 </span>                :            :         iterator operator--(int) { iterator copy(*this); --(*this); return copy; }
+<span class="lineNum">      66 </span>                :<span class="lineCov">     600231 :         difference_type friend operator-(iterator a, iterator b) { return (&amp;(*a) - &amp;(*b)); }</span>
+<span class="lineNum">      67 </span>                :            :         iterator operator+(size_type n) { return iterator(ptr + n); }
+<span class="lineNum">      68 </span>                :            :         iterator&amp; operator+=(size_type n) { ptr += n; return *this; }
+<span class="lineNum">      69 </span>                :            :         iterator operator-(size_type n) { return iterator(ptr - n); }
+<span class="lineNum">      70 </span>                :            :         iterator&amp; operator-=(size_type n) { ptr -= n; return *this; }
+<span class="lineNum">      71 </span>                :            :         bool operator==(iterator x) const { return ptr == x.ptr; }
+<span class="lineNum">      72 </span>                :<span class="lineNoCov">          0 :         bool operator!=(iterator x) const { return ptr != x.ptr; }</span>
+<span class="lineNum">      73 </span>                :            :         bool operator&gt;=(iterator x) const { return ptr &gt;= x.ptr; }
+<span class="lineNum">      74 </span>                :            :         bool operator&lt;=(iterator x) const { return ptr &lt;= x.ptr; }
+<span class="lineNum">      75 </span>                :            :         bool operator&gt;(iterator x) const { return ptr &gt; x.ptr; }
+<span class="lineNum">      76 </span>                :<span class="lineNoCov">          0 :         bool operator&lt;(iterator x) const { return ptr &lt; x.ptr; }</span>
+<span class="lineNum">      77 </span>                :            :     };
+<span class="lineNum">      78 </span>                :            : 
+<span class="lineNum">      79 </span>                :            :     class reverse_iterator {
+<span class="lineNum">      80 </span>                :            :         T* ptr;
+<span class="lineNum">      81 </span>                :            :     public:
+<span class="lineNum">      82 </span>                :            :         typedef Diff difference_type;
+<span class="lineNum">      83 </span>                :            :         typedef T value_type;
+<span class="lineNum">      84 </span>                :            :         typedef T* pointer;
+<span class="lineNum">      85 </span>                :            :         typedef T&amp; reference;
+<span class="lineNum">      86 </span>                :            :         typedef std::bidirectional_iterator_tag iterator_category;
+<span class="lineNum">      87 </span>                :            :         reverse_iterator(T* ptr_) : ptr(ptr_) {}
+<span class="lineNum">      88 </span>                :            :         T&amp; operator*() { return *ptr; }
+<span class="lineNum">      89 </span>                :            :         const T&amp; operator*() const { return *ptr; }
+<span class="lineNum">      90 </span>                :            :         T* operator-&gt;() { return ptr; }
+<span class="lineNum">      91 </span>                :            :         const T* operator-&gt;() const { return ptr; }
+<span class="lineNum">      92 </span>                :            :         reverse_iterator&amp; operator--() { ptr++; return *this; }
+<span class="lineNum">      93 </span>                :            :         reverse_iterator&amp; operator++() { ptr--; return *this; }
+<span class="lineNum">      94 </span>                :            :         reverse_iterator operator++(int) { reverse_iterator copy(*this); ++(*this); return copy; }
+<span class="lineNum">      95 </span>                :            :         reverse_iterator operator--(int) { reverse_iterator copy(*this); --(*this); return copy; }
+<span class="lineNum">      96 </span>                :            :         bool operator==(reverse_iterator x) const { return ptr == x.ptr; }
+<span class="lineNum">      97 </span>                :            :         bool operator!=(reverse_iterator x) const { return ptr != x.ptr; }
+<span class="lineNum">      98 </span>                :            :     };
+<span class="lineNum">      99 </span>                :            : 
+<span class="lineNum">     100 </span>                :            :     class const_iterator {
+<span class="lineNum">     101 </span>                :            :         const T* ptr;
+<span class="lineNum">     102 </span>                :            :     public:
+<span class="lineNum">     103 </span>                :            :         typedef Diff difference_type;
+<span class="lineNum">     104 </span>                :            :         typedef const T value_type;
+<span class="lineNum">     105 </span>                :            :         typedef const T* pointer;
+<span class="lineNum">     106 </span>                :            :         typedef const T&amp; reference;
+<span class="lineNum">     107 </span>                :            :         typedef std::random_access_iterator_tag iterator_category;
+<a name="108"><span class="lineNum">     108 </span>                :<span class="lineCov">    2902028 :         const_iterator(const T* ptr_) : ptr(ptr_) {}</span></a>
+<span class="lineNum">     109 </span>                :<span class="lineCov">      40047 :         const_iterator(iterator x) : ptr(&amp;(*x)) {}</span>
+<span class="lineNum">     110 </span>                :<span class="lineCov">    9246291 :         const T&amp; operator*() const { return *ptr; }</span>
+<span class="lineNum">     111 </span>                :            :         const T* operator-&gt;() const { return ptr; }
+<span class="lineNum">     112 </span>                :<span class="lineNoCov">          0 :         const T&amp; operator[](size_type pos) const { return ptr[pos]; }</span>
+<span class="lineNum">     113 </span>                :<span class="lineCov">   14750520 :         const_iterator&amp; operator++() { ptr++; return *this; }</span>
+<span class="lineNum">     114 </span>                :            :         const_iterator&amp; operator--() { ptr--; return *this; }
+<span class="lineNum">     115 </span>                :<span class="lineCov">    4412042 :         const_iterator operator++(int) { const_iterator copy(*this); ++(*this); return copy; }</span>
+<span class="lineNum">     116 </span>                :            :         const_iterator operator--(int) { const_iterator copy(*this); --(*this); return copy; }
+<span class="lineNum">     117 </span>                :<span class="lineCov">    5658340 :         difference_type friend operator-(const_iterator a, const_iterator b) { return (&amp;(*a) - &amp;(*b)); }</span>
+<span class="lineNum">     118 </span>                :<span class="lineCov">     106860 :         const_iterator operator+(size_type n) { return const_iterator(ptr + n); }</span>
+<span class="lineNum">     119 </span>                :<span class="lineCov">     256118 :         const_iterator&amp; operator+=(size_type n) { ptr += n; return *this; }</span>
+<span class="lineNum">     120 </span>                :<span class="lineNoCov">          0 :         const_iterator operator-(size_type n) { return const_iterator(ptr - n); }</span>
+<span class="lineNum">     121 </span>                :            :         const_iterator&amp; operator-=(size_type n) { ptr -= n; return *this; }
+<a name="122"><span class="lineNum">     122 </span>                :<span class="lineNoCov">          0 :         bool operator==(const_iterator x) const { return ptr == x.ptr; }</span></a>
+<span class="lineNum">     123 </span>                :<span class="lineCov">    9712710 :         bool operator!=(const_iterator x) const { return ptr != x.ptr; }</span>
+<span class="lineNum">     124 </span>                :<span class="lineCov">    2279500 :         bool operator&gt;=(const_iterator x) const { return ptr &gt;= x.ptr; }</span>
+<span class="lineNum">     125 </span>                :            :         bool operator&lt;=(const_iterator x) const { return ptr &lt;= x.ptr; }
+<span class="lineNum">     126 </span>                :            :         bool operator&gt;(const_iterator x) const { return ptr &gt; x.ptr; }
+<span class="lineNum">     127 </span>                :<span class="lineCov">     913070 :         bool operator&lt;(const_iterator x) const { return ptr &lt; x.ptr; }</span>
+<span class="lineNum">     128 </span>                :            :     };
+<span class="lineNum">     129 </span>                :            : 
+<span class="lineNum">     130 </span>                :            :     class const_reverse_iterator {
+<span class="lineNum">     131 </span>                :            :         const T* ptr;
+<span class="lineNum">     132 </span>                :            :     public:
+<span class="lineNum">     133 </span>                :            :         typedef Diff difference_type;
+<span class="lineNum">     134 </span>                :            :         typedef const T value_type;
+<span class="lineNum">     135 </span>                :            :         typedef const T* pointer;
+<span class="lineNum">     136 </span>                :            :         typedef const T&amp; reference;
+<span class="lineNum">     137 </span>                :            :         typedef std::bidirectional_iterator_tag iterator_category;
+<span class="lineNum">     138 </span>                :            :         const_reverse_iterator(const T* ptr_) : ptr(ptr_) {}
+<span class="lineNum">     139 </span>                :            :         const_reverse_iterator(reverse_iterator x) : ptr(&amp;(*x)) {}
+<span class="lineNum">     140 </span>                :            :         const T&amp; operator*() const { return *ptr; }
+<span class="lineNum">     141 </span>                :            :         const T* operator-&gt;() const { return ptr; }
+<span class="lineNum">     142 </span>                :            :         const_reverse_iterator&amp; operator--() { ptr++; return *this; }
+<span class="lineNum">     143 </span>                :            :         const_reverse_iterator&amp; operator++() { ptr--; return *this; }
+<span class="lineNum">     144 </span>                :            :         const_reverse_iterator operator++(int) { const_reverse_iterator copy(*this); ++(*this); return copy; }
+<span class="lineNum">     145 </span>                :            :         const_reverse_iterator operator--(int) { const_reverse_iterator copy(*this); --(*this); return copy; }
+<span class="lineNum">     146 </span>                :            :         bool operator==(const_reverse_iterator x) const { return ptr == x.ptr; }
+<span class="lineNum">     147 </span>                :            :         bool operator!=(const_reverse_iterator x) const { return ptr != x.ptr; }
+<span class="lineNum">     148 </span>                :            :     };
+<span class="lineNum">     149 </span>                :            : 
+<span class="lineNum">     150 </span>                :            : private:
+<span class="lineNum">     151 </span>                :            :     size_type _size;
+<span class="lineNum">     152 </span>                :            :     union direct_or_indirect {
+<span class="lineNum">     153 </span>                :            :         char direct[sizeof(T) * N];
+<span class="lineNum">     154 </span>                :            :         struct {
+<span class="lineNum">     155 </span>                :            :             size_type capacity;
+<span class="lineNum">     156 </span>                :            :             char* indirect;
+<span class="lineNum">     157 </span>                :            :         };
+<span class="lineNum">     158 </span>                :            :     } _union;
+<span class="lineNum">     159 </span>                :            : 
+<span class="lineNum">     160 </span>                :<span class="lineCov">     733834 :     T* direct_ptr(difference_type pos) { return reinterpret_cast&lt;T*&gt;(_union.direct) + pos; }</span>
+<span class="lineNum">     161 </span>                :<span class="lineCov">    1017558 :     const T* direct_ptr(difference_type pos) const { return reinterpret_cast&lt;const T*&gt;(_union.direct) + pos; }</span>
+<a name="162"><span class="lineNum">     162 </span>                :<span class="lineCov">    1601535 :     T* indirect_ptr(difference_type pos) { return reinterpret_cast&lt;T*&gt;(_union.indirect) + pos; }</span></a>
+<span class="lineNum">     163 </span>                :<span class="lineCov">    2944542 :     const T* indirect_ptr(difference_type pos) const { return reinterpret_cast&lt;const T*&gt;(_union.indirect) + pos; }</span>
+<a name="164"><span class="lineNum">     164 </span>                :<span class="lineCov">   10320405 :     bool is_direct() const { return _size &lt;= N; }</span></a>
+<span class="lineNum">     165 </span>                :            : 
+<span class="lineNum">     166 </span>                :<span class="lineCov">     649022 :     void change_capacity(size_type new_capacity) {</span>
+<span class="lineNum">     167 </span>        [<span class="branchCov" title="Branch 0 was taken 498115 times"> + </span><span class="branchCov" title="Branch 1 was taken 150907 times"> + </span>]:<span class="lineCov">     649022 :         if (new_capacity &lt;= N) {</span>
+<span class="lineNum">     168 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 498115 times"> + </span>]:<span class="lineCov">     498115 :             if (!is_direct()) {</span>
+<span class="lineNum">     169 </span>                :<span class="lineNoCov">          0 :                 T* indirect = indirect_ptr(0);</span>
+<span class="lineNum">     170 </span>                :<span class="lineNoCov">          0 :                 T* src = indirect;</span>
+<span class="lineNum">     171 </span>                :<span class="lineNoCov">          0 :                 T* dst = direct_ptr(0);</span>
+<span class="lineNum">     172 </span>                :<span class="lineNoCov">          0 :                 memcpy(dst, src, size() * sizeof(T));</span>
+<span class="lineNum">     173 </span>                :<span class="lineNoCov">          0 :                 free(indirect);</span>
+<span class="lineNum">     174 </span>                :<span class="lineNoCov">          0 :                 _size -= N + 1;</span>
+<span class="lineNum">     175 </span>                :            :             }
+<span class="lineNum">     176 </span>                :            :         } else {
+<span class="lineNum">     177 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 150907 times"> + </span>]:<span class="lineCov">     150907 :             if (!is_direct()) {</span>
+<span class="lineNum">     178 </span>                :            :                 /* FIXME: Because malloc/realloc here won't call new_handler if allocation fails, assert
+<span class="lineNum">     179 </span>                :            :                     success. These should instead use an allocator or new/delete so that handlers
+<span class="lineNum">     180 </span>                :            :                     are called as necessary, but performance would be slightly degraded by doing so. */
+<span class="lineNum">     181 </span>                :<span class="lineNoCov">          0 :                 _union.indirect = static_cast&lt;char*&gt;(realloc(_union.indirect, ((size_t)sizeof(T)) * new_capacity));</span>
+<span class="lineNum">     182 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 assert(_union.indirect);</span>
+<span class="lineNum">     183 </span>                :<span class="lineNoCov">          0 :                 _union.capacity = new_capacity;</span>
+<span class="lineNum">     184 </span>                :            :             } else {
+<span class="lineNum">     185 </span>                :<span class="lineCov">     150907 :                 char* new_indirect = static_cast&lt;char*&gt;(malloc(((size_t)sizeof(T)) * new_capacity));</span>
+<span class="lineNum">     186 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 150907 times"> + </span>]:<span class="lineCov">     150907 :                 assert(new_indirect);</span>
+<span class="lineNum">     187 </span>                :<span class="lineCov">     150907 :                 T* src = direct_ptr(0);</span>
+<span class="lineNum">     188 </span>                :<span class="lineCov">     150907 :                 T* dst = reinterpret_cast&lt;T*&gt;(new_indirect);</span>
+<span class="lineNum">     189 </span>                :<span class="lineCov">     301814 :                 memcpy(dst, src, size() * sizeof(T));</span>
+<span class="lineNum">     190 </span>                :<span class="lineCov">     150907 :                 _union.indirect = new_indirect;</span>
+<span class="lineNum">     191 </span>                :<span class="lineCov">     150907 :                 _union.capacity = new_capacity;</span>
+<span class="lineNum">     192 </span>                :<span class="lineCov">     150907 :                 _size += N + 1;</span>
+<span class="lineNum">     193 </span>                :            :             }
+<span class="lineNum">     194 </span>                :            :         }
+<span class="lineNum">     195 </span>                :<span class="lineCov">     649022 :     }</span>
+<span class="lineNum">     196 </span>                :            : 
+<span class="lineNum">     197 </span>[<span class="branchCov" title="Branch 0 was taken 18 times"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 6707 times"> + </span><span class="branchCov" title="Branch 3 was taken 89 times"> + </span>]:<span class="lineCov">    2134386 :     T* item_ptr(difference_type pos) { return is_direct() ? direct_ptr(pos) : indirect_ptr(pos); }</span>
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>][<span class="branchCov" title="Branch 6 was taken 3333 times"> + </span><span class="branchCov" title="Branch 7 was taken 15 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 32281 times"> + </span><span class="branchCov" title="Branch 9 was taken 68 times"> + </span>][<span class="branchCov" title="Branch 10 was taken 28210 times"> + </span><span class="branchCov" title="Branch 11 was taken 190 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 0 was taken 28410 times"> + </span><span class="branchCov" title="Branch 1 was taken 13614 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 31815 times"> + </span><span class="branchCov" title="Branch 9 was taken 10388 times"> + </span>][<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 2 was taken 3405 times"> + </span><span class="branchCov" title="Branch 3 was taken 3440 times"> + </span>][<span class="branchCov" title="Branch 4 was taken 3340 times"> + </span><span class="branchCov" title="Branch 5 was taken 10 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 6 was taken 14089 times"> + </span><span class="branchCov" title="Branch 7 was taken 4 times"> + </span>][<span class="branchCov" title="Branch 8 was taken 14089 times"> + </span><span class="branchCov" title="Branch 9 was taken 4 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>][<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 14 was not executed"> # </span><span class="branchNoExec" title="Branch 15 was not executed"> # </span>][<span class="branchCov" title="Branch 16 was taken 3340 times"> + </span><span class="branchCov" title="Branch 17 was taken 10 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 18 was taken 40063 times"> + </span><span class="branchNoCov" title="Branch 19 was not taken"> - </span>][<span class="branchCov" title="Branch 20 was taken 3341 times"> + </span><span class="branchCov" title="Branch 21 was taken 40055 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 22 was taken 3333 times"> + </span><span class="branchNoCov" title="Branch 23 was not taken"> - </span>][<span class="branchCov" title="Branch 24 was taken 3333 times"> + </span><span class="branchNoCov" title="Branch 25 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 26 was taken 3333 times"> + </span><span class="branchCov" title="Branch 27 was taken 40047 times"> + </span>][<span class="branchNoExec" title="Branch 28 was not executed"> # </span><span class="branchNoExec" title="Branch 29 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 30 was not executed"> # </span><span class="branchNoExec" title="Branch 31 was not executed"> # </span>][<span class="branchNoExec" title="Branch 32 was not executed"> # </span><span class="branchNoExec" title="Branch 33 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 34 was not executed"> # </span><span class="branchNoExec" title="Branch 35 was not executed"> # </span>][<span class="branchNoExec" title="Branch 36 was not executed"> # </span><span class="branchNoExec" title="Branch 37 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 38 was not executed"> # </span><span class="branchNoExec" title="Branch 39 was not executed"> # </span>][<span class="branchNoExec" title="Branch 40 was not executed"> # </span><span class="branchNoExec" title="Branch 41 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 42 was not executed"> # </span><span class="branchNoExec" title="Branch 43 was not executed"> # </span>][<span class="branchNoExec" title="Branch 44 was not executed"> # </span><span class="branchNoExec" title="Branch 45 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 46 was not executed"> # </span><span class="branchNoExec" title="Branch 47 was not executed"> # </span>][<span class="branchNoExec" title="Branch 48 was not executed"> # </span><span class="branchNoExec" title="Branch 49 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 50 was not executed"> # </span><span class="branchNoExec" title="Branch 51 was not executed"> # </span>][<span class="branchNoCov" title="Branch 38 was not taken"> - </span><span class="branchCov" title="Branch 39 was taken 40062 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 40 was not executed"> # </span><span class="branchNoExec" title="Branch 41 was not executed"> # </span>][<span class="branchNoExec" title="Branch 42 was not executed"> # </span><span class="branchNoExec" title="Branch 43 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 44 was not executed"> # </span><span class="branchNoExec" title="Branch 45 was not executed"> # </span>][<span class="branchNoExec" title="Branch 46 was not executed"> # </span><span class="branchNoExec" title="Branch 47 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 48 was not executed"> # </span><span class="branchNoExec" title="Branch 49 was not executed"> # </span>][<span class="branchNoExec" title="Branch 50 was not executed"> # </span><span class="branchNoExec" title="Branch 51 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 52 was not executed"> # </span><span class="branchNoExec" title="Branch 53 was not executed"> # </span>][<span class="branchNoExec" title="Branch 54 was not executed"> # </span><span class="branchNoExec" title="Branch 55 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 56 was taken 40063 times"> + </span><span class="branchNoCov" title="Branch 57 was not taken"> - </span>][<span class="branchNoExec" title="Branch 58 was not executed"> # </span><span class="branchNoExec" title="Branch 59 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 60 was not executed"> # </span><span class="branchNoExec" title="Branch 61 was not executed"> # </span>][<span class="branchNoExec" title="Branch 62 was not executed"> # </span><span class="branchNoExec" title="Branch 63 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 64 was not executed"> # </span><span class="branchNoExec" title="Branch 65 was not executed"> # </span>][<span class="branchNoExec" title="Branch 66 was not executed"> # </span><span class="branchNoExec" title="Branch 67 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 68 was not executed"> # </span><span class="branchNoExec" title="Branch 69 was not executed"> # </span>][<span class="branchCov" title="Branch 70 was taken 40063 times"> + </span><span class="branchNoCov" title="Branch 71 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 72 was not executed"> # </span><span class="branchNoExec" title="Branch 73 was not executed"> # </span>][<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 14 was not executed"> # </span><span class="branchNoExec" title="Branch 15 was not executed"> # </span>][<span class="branchNoExec" title="Branch 16 was not executed"> # </span><span class="branchNoExec" title="Branch 17 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 18 was taken 40063 times"> + </span><span class="branchCov" title="Branch 19 was taken 4 times"> + </span>][<span class="branchCov" title="Branch 20 was taken 120157 times"> + </span><span class="branchCov" title="Branch 21 was taken 440011 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 22 was taken 40047 times"> + </span><span class="branchCov" title="Branch 23 was taken 480054 times"> + </span>][<span class="branchNoExec" title="Branch 24 was not executed"> # </span><span class="branchNoExec" title="Branch 25 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 26 was not executed"> # </span><span class="branchNoExec" title="Branch 27 was not executed"> # </span>][<span class="branchNoExec" title="Branch 28 was not executed"> # </span><span class="branchNoExec" title="Branch 29 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 30 was not executed"> # </span><span class="branchNoExec" title="Branch 31 was not executed"> # </span>][<span class="branchNoExec" title="Branch 32 was not executed"> # </span><span class="branchNoExec" title="Branch 33 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 34 was not executed"> # </span><span class="branchNoExec" title="Branch 35 was not executed"> # </span>][<span class="branchNoExec" title="Branch 36 was not executed"> # </span><span class="branchNoExec" title="Branch 37 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 38 was not executed"> # </span><span class="branchNoExec" title="Branch 39 was not executed"> # </span>][<span class="branchNoExec" title="Branch 40 was not executed"> # </span><span class="branchNoExec" title="Branch 41 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 42 was not taken"> - </span><span class="branchCov" title="Branch 43 was taken 4 times"> + </span>][<span class="branchNoExec" title="Branch 44 was not executed"> # </span><span class="branchNoExec" title="Branch 45 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 46 was not executed"> # </span><span class="branchNoExec" title="Branch 47 was not executed"> # </span>][<span class="branchNoExec" title="Branch 48 was not executed"> # </span><span class="branchNoExec" title="Branch 49 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 24 was not taken"> - </span><span class="branchCov" title="Branch 25 was taken 13332 times"> + </span>][<span class="branchNoExec" title="Branch 26 was not executed"> # </span><span class="branchNoExec" title="Branch 27 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 28 was not executed"> # </span><span class="branchNoExec" title="Branch 29 was not executed"> # </span>][<span class="branchNoExec" title="Branch 30 was not executed"> # </span><span class="branchNoExec" title="Branch 31 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 32 was not executed"> # </span><span class="branchNoExec" title="Branch 33 was not executed"> # </span>][<span class="branchNoExec" title="Branch 34 was not executed"> # </span><span class="branchNoExec" title="Branch 35 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 36 was not executed"> # </span><span class="branchNoExec" title="Branch 37 was not executed"> # </span>][<span class="branchNoExec" title="Branch 38 was not executed"> # </span><span class="branchNoExec" title="Branch 39 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 40 was not executed"> # </span><span class="branchNoExec" title="Branch 41 was not executed"> # </span>][<span class="branchNoExec" title="Branch 42 was not executed"> # </span><span class="branchNoExec" title="Branch 43 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 18 was not executed"> # </span><span class="branchNoExec" title="Branch 19 was not executed"> # </span>][<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 14 was not executed"> # </span><span class="branchNoExec" title="Branch 15 was not executed"> # </span>][<span class="branchNoExec" title="Branch 16 was not executed"> # </span><span class="branchNoExec" title="Branch 17 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 28 was not executed"> # </span><span class="branchNoExec" title="Branch 29 was not executed"> # </span>][<span class="branchNoExec" title="Branch 30 was not executed"> # </span><span class="branchNoExec" title="Branch 31 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 32 was not executed"> # </span><span class="branchNoExec" title="Branch 33 was not executed"> # </span>][<span class="branchNoExec" title="Branch 34 was not executed"> # </span><span class="branchNoExec" title="Branch 35 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 36 was not taken"> - </span><span class="branchCov" title="Branch 37 was taken 40062 times"> + </span>][<span class="branchCov" title="Branch 40 was taken 80094 times"> + </span><span class="branchCov" title="Branch 41 was taken 440022 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 34 was not taken"> - </span><span class="branchCov" title="Branch 35 was taken 40047 times"> + </span>][<span class="branchNoExec" title="Branch 42 was not executed"> # </span><span class="branchNoExec" title="Branch 43 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 44 was not executed"> # </span><span class="branchNoExec" title="Branch 45 was not executed"> # </span>][<span class="branchNoExec" title="Branch 46 was not executed"> # </span><span class="branchNoExec" title="Branch 47 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 48 was not executed"> # </span><span class="branchNoExec" title="Branch 49 was not executed"> # </span>][<span class="branchNoExec" title="Branch 50 was not executed"> # </span><span class="branchNoExec" title="Branch 51 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 52 was not executed"> # </span><span class="branchNoExec" title="Branch 53 was not executed"> # </span>][<span class="branchNoExec" title="Branch 54 was not executed"> # </span><span class="branchNoExec" title="Branch 55 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 56 was not executed"> # </span><span class="branchNoExec" title="Branch 57 was not executed"> # </span>][<span class="branchNoExec" title="Branch 58 was not executed"> # </span><span class="branchNoExec" title="Branch 59 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 60 was not executed"> # </span><span class="branchNoExec" title="Branch 61 was not executed"> # </span>][<span class="branchNoExec" title="Branch 36 was not executed"> # </span><span class="branchNoExec" title="Branch 37 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 42 was not executed"> # </span><span class="branchNoExec" title="Branch 43 was not executed"> # </span>][<span class="branchNoExec" title="Branch 44 was not executed"> # </span><span class="branchNoExec" title="Branch 45 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 46 was not executed"> # </span><span class="branchNoExec" title="Branch 47 was not executed"> # </span>][<span class="branchNoExec" title="Branch 48 was not executed"> # </span><span class="branchNoExec" title="Branch 49 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 50 was not executed"> # </span><span class="branchNoExec" title="Branch 51 was not executed"> # </span>][<span class="branchNoExec" title="Branch 52 was not executed"> # </span><span class="branchNoExec" title="Branch 53 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 54 was not executed"> # </span><span class="branchNoExec" title="Branch 55 was not executed"> # </span>][<span class="branchNoExec" title="Branch 56 was not executed"> # </span><span class="branchNoExec" title="Branch 57 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 58 was not executed"> # </span><span class="branchNoExec" title="Branch 59 was not executed"> # </span>]
+<span class="lineNum">     198 </span>[<span class="branchCov" title="Branch 0 was taken 35090 times"> + </span><span class="branchCov" title="Branch 1 was taken 6989 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 81909 times"> + </span><span class="branchCov" title="Branch 3 was taken 10527 times"> + </span>]:<span class="lineCov">    3792823 :     const T* item_ptr(difference_type pos) const { return is_direct() ? direct_ptr(pos) : indirect_ptr(pos); }</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 31557 times"> + </span><span class="branchCov" title="Branch 5 was taken 13556 times"> + </span>][<span class="branchCov" title="Branch 6 was taken 31557 times"> + </span><span class="branchCov" title="Branch 7 was taken 80500 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 48215 times"> + </span><span class="branchCov" title="Branch 9 was taken 40515 times"> + </span>][<span class="branchCov" title="Branch 10 was taken 32281 times"> + </span><span class="branchCov" title="Branch 11 was taken 321 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 12 was taken 56362 times"> + </span><span class="branchCov" title="Branch 13 was taken 68 times"> + </span>][<span class="branchCov" title="Branch 14 was taken 24081 times"> + </span><span class="branchNoCov" title="Branch 15 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 16 was taken 24081 times"> + </span><span class="branchCov" title="Branch 17 was taken 6666 times"> + </span>][<span class="branchCov" title="Branch 18 was taken 24081 times"> + </span><span class="branchCov" title="Branch 19 was taken 19998 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 20 was taken 68194 times"> + </span><span class="branchCov" title="Branch 21 was taken 13444 times"> + </span>][<span class="branchCov" title="Branch 22 was taken 68194 times"> + </span><span class="branchCov" title="Branch 23 was taken 13444 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 24 was taken 68194 times"> + </span><span class="branchCov" title="Branch 25 was taken 13444 times"> + </span>][<span class="branchNoCov" title="Branch 26 was not taken"> - </span><span class="branchCov" title="Branch 27 was taken 46662 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 28 was not taken"> - </span><span class="branchCov" title="Branch 29 was taken 59994 times"> + </span>][<span class="branchCov" title="Branch 30 was taken 91692 times"> + </span><span class="branchCov" title="Branch 31 was taken 1580851 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 14 was not executed"> # </span><span class="branchNoExec" title="Branch 15 was not executed"> # </span>][<span class="branchNoCov" title="Branch 16 was not taken"> - </span><span class="branchCov" title="Branch 17 was taken 161 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 18 was not executed"> # </span><span class="branchNoExec" title="Branch 19 was not executed"> # </span>][<span class="branchNoExec" title="Branch 20 was not executed"> # </span><span class="branchNoExec" title="Branch 21 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 22 was not executed"> # </span><span class="branchNoExec" title="Branch 23 was not executed"> # </span>][<span class="branchNoExec" title="Branch 24 was not executed"> # </span><span class="branchNoExec" title="Branch 25 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 26 was not executed"> # </span><span class="branchNoExec" title="Branch 27 was not executed"> # </span>][<span class="branchCov" title="Branch 28 was taken 3347 times"> + </span><span class="branchCov" title="Branch 29 was taken 36 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 32 was taken 228920 times"> + </span><span class="branchCov" title="Branch 33 was taken 562516 times"> + </span>][<span class="branchCov" title="Branch 34 was taken 99803 times"> + </span><span class="branchCov" title="Branch 35 was taken 461518 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 36 was not taken"> - </span><span class="branchCov" title="Branch 37 was taken 13332 times"> + </span>][<span class="branchNoExec" title="Branch 38 was not executed"> # </span><span class="branchNoExec" title="Branch 39 was not executed"> # </span>]
+<span class="lineNum">     199 </span>                :            : 
+<span class="lineNum">     200 </span>                :            :     void fill(T* dst, ptrdiff_t count) {
+<span class="lineNum">     201 </span>                :            :         if (IS_TRIVIALLY_CONSTRUCTIBLE&lt;T&gt;::value) {
+<span class="lineNum">     202 </span>                :            :             // The most common use of prevector is where T=unsigned char. For
+<span class="lineNum">     203 </span>                :            :             // trivially constructible types, we can use memset() to avoid
+<span class="lineNum">     204 </span>                :            :             // looping.
+<span class="lineNum">     205 </span>                :<span class="lineCov">      97802 :             ::memset(dst, 0, count * sizeof(T));</span>
+<span class="lineNum">     206 </span>                :            :         } else {
+<span class="lineNum">     207 </span>                :            :             for (auto i = 0; i &lt; count; ++i) {
+<span class="lineNum">     208 </span>                :            :                 new(static_cast&lt;void*&gt;(dst + i)) T();
+<span class="lineNum">     209 </span>                :            :             }
+<span class="lineNum">     210 </span>                :            :         }
+<span class="lineNum">     211 </span>                :            :     }
+<span class="lineNum">     212 </span>                :            : 
+<span class="lineNum">     213 </span>                :            :     void fill(T* dst, ptrdiff_t count, const T&amp; value) {
+<span class="lineNum">     214 </span>                :            :         for (auto i = 0; i &lt; count; ++i) {
+<span class="lineNum">     215 </span>                :            :             new(static_cast&lt;void*&gt;(dst + i)) T(value);
+<span class="lineNum">     216 </span>                :            :         }
+<span class="lineNum">     217 </span>                :            :     }
+<span class="lineNum">     218 </span>                :            : 
+<span class="lineNum">     219 </span>                :            :     template&lt;typename InputIterator&gt;
+<span class="lineNum">     220 </span>                :            :     void fill(T* dst, InputIterator first, InputIterator last) {
+<span class="lineNum">     221 </span>[<span class="branchCov" title="Branch 0 was taken 3808348 times"> + </span><span class="branchCov" title="Branch 1 was taken 85874 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 2398439 times"> + </span><span class="branchCov" title="Branch 3 was taken 28400 times"> + </span>]:<span class="lineCov">   14087323 :         while (first != last) {</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 3083109 times"> + </span><span class="branchCov" title="Branch 5 was taken 520101 times"> + </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 4109673 times"> + </span><span class="branchCov" title="Branch 9 was taken 53379 times"> + </span>]
+<span class="lineNum">     222 </span>[<span class="branchCov" title="Branch 0 was taken 3808348 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>][<span class="branchCov" title="Branch 2 was taken 2398439 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">   13399569 :             new(static_cast&lt;void*&gt;(dst)) T(*first);</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 3083109 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 8 was taken 4109673 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">     223 </span>                :<span class="lineCov">   13399569 :             ++dst;</span>
+<span class="lineNum">     224 </span>                :<span class="lineNoCov">          0 :             ++first;</span>
+<span class="lineNum">     225 </span>                :            :         }
+<span class="lineNum">     226 </span>                :            :     }
+<span class="lineNum">     227 </span>                :            : 
+<span class="lineNum">     228 </span>                :            : public:
+<span class="lineNum">     229 </span>                :            :     void assign(size_type n, const T&amp; val) {
+<span class="lineNum">     230 </span>                :            :         clear();
+<span class="lineNum">     231 </span>                :            :         if (capacity() &lt; n) {
+<span class="lineNum">     232 </span>                :            :             change_capacity(n);
+<span class="lineNum">     233 </span>                :            :         }
+<span class="lineNum">     234 </span>                :            :         _size += n;
+<span class="lineNum">     235 </span>                :            :         fill(item_ptr(0), n, val);
+<span class="lineNum">     236 </span>                :            :     }
+<a name="237"><span class="lineNum">     237 </span>                :            : </a>
+<span class="lineNum">     238 </span>                :            :     template&lt;typename InputIterator&gt;
+<span class="lineNum">     239 </span>                :<span class="lineCov">       6796 :     void assign(InputIterator first, InputIterator last) {</span>
+<span class="lineNum">     240 </span>                :<span class="lineCov">       6796 :         size_type n = last - first;</span>
+<span class="lineNum">     241 </span>                :<span class="lineCov">       6796 :         clear();</span>
+<span class="lineNum">     242 </span>        [<span class="branchCov" title="Branch 0 was taken 89 times"> + </span><span class="branchCov" title="Branch 1 was taken 6707 times"> + </span>]:<span class="lineCov">       6796 :         if (capacity() &lt; n) {</span>
+<span class="lineNum">     243 </span>                :<span class="lineCov">         89 :             change_capacity(n);</span>
+<span class="lineNum">     244 </span>                :            :         }
+<span class="lineNum">     245 </span>                :<span class="lineCov">       6796 :         _size += n;</span>
+<span class="lineNum">     246 </span>                :<span class="lineCov">       6796 :         fill(item_ptr(0), first, last);</span>
+<span class="lineNum">     247 </span>                :<span class="lineCov">       6796 :     }</span>
+<span class="lineNum">     248 </span>                :            : 
+<span class="lineNum">     249 </span>                :<span class="lineCov">     996411 :     prevector() : _size(0), _union{{}} {}</span>
+<span class="lineNum">     250 </span>                :            : 
+<span class="lineNum">     251 </span>                :            :     explicit prevector(size_type n) : prevector() {
+<span class="lineNum">     252 </span>                :            :         resize(n);
+<span class="lineNum">     253 </span>                :            :     }
+<span class="lineNum">     254 </span>                :            : 
+<span class="lineNum">     255 </span>                :            :     explicit prevector(size_type n, const T&amp; val) : prevector() {
+<span class="lineNum">     256 </span>                :            :         change_capacity(n);
+<span class="lineNum">     257 </span>                :            :         _size += n;
+<span class="lineNum">     258 </span>                :            :         fill(item_ptr(0), n, val);
+<span class="lineNum">     259 </span>                :            :     }
+<a name="260"><span class="lineNum">     260 </span>                :            : </a>
+<span class="lineNum">     261 </span>                :            :     template&lt;typename InputIterator&gt;
+<span class="lineNum">     262 </span>                :<span class="lineCov">      60045 :     prevector(InputIterator first, InputIterator last) : prevector() {</span>
+<span class="lineNum">     263 </span>                :<span class="lineCov">      60045 :         size_type n = last - first;</span>
+<span class="lineNum">     264 </span>                :<span class="lineCov">      60045 :         change_capacity(n);</span>
+<span class="lineNum">     265 </span>                :<span class="lineCov">      60045 :         _size += n;</span>
+<span class="lineNum">     266 </span>                :<span class="lineCov">      60045 :         fill(item_ptr(0), first, last);</span>
+<a name="267"><span class="lineNum">     267 </span>                :<span class="lineCov">      60045 :     }</span></a>
+<span class="lineNum">     268 </span>                :            : 
+<span class="lineNum">     269 </span>                :<span class="lineCov">      60749 :     prevector(const prevector&lt;N, T, Size, Diff&gt;&amp; other) : prevector() {</span>
+<span class="lineNum">     270 </span>                :<span class="lineCov">      60749 :         size_type n = other.size();</span>
+<span class="lineNum">     271 </span>                :<span class="lineCov">      60749 :         change_capacity(n);</span>
+<span class="lineNum">     272 </span>                :<span class="lineCov">      60749 :         _size += n;</span>
+<span class="lineNum">     273 </span>                :<span class="lineCov">      60749 :         fill(item_ptr(0), other.begin(),  other.end());</span>
+<span class="lineNum">     274 </span>                :<span class="lineCov">      60749 :     }</span>
+<span class="lineNum">     275 </span>                :            : 
+<span class="lineNum">     276 </span>                :<span class="lineCov">     255052 :     prevector(prevector&lt;N, T, Size, Diff&gt;&amp;&amp; other) : prevector() {</span>
+<span class="lineNum">     277 </span>                :<span class="lineCov">     127526 :         swap(other);</span>
+<a name="278"><span class="lineNum">     278 </span>                :            :     }</a>
+<span class="lineNum">     279 </span>                :            : 
+<span class="lineNum">     280 </span>                :<span class="lineCov">       6796 :     prevector&amp; operator=(const prevector&lt;N, T, Size, Diff&gt;&amp; other) {</span>
+<span class="lineNum">     281 </span>        [<span class="branchCov" title="Branch 0 was taken 6796 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       6796 :         if (&amp;other == this) {</span>
+<span class="lineNum">     282 </span>                :            :             return *this;
+<span class="lineNum">     283 </span>                :            :         }
+<span class="lineNum">     284 </span>                :<span class="lineCov">       6796 :         assign(other.begin(), other.end());</span>
+<span class="lineNum">     285 </span>                :<span class="lineCov">       6796 :         return *this;</span>
+<span class="lineNum">     286 </span>                :            :     }
+<span class="lineNum">     287 </span>                :            : 
+<span class="lineNum">     288 </span>                :            :     prevector&amp; operator=(prevector&lt;N, T, Size, Diff&gt;&amp;&amp; other) {
+<span class="lineNum">     289 </span>                :<span class="lineCov">     221890 :         swap(other);</span>
+<span class="lineNum">     290 </span>                :            :         return *this;
+<span class="lineNum">     291 </span>                :            :     }
+<span class="lineNum">     292 </span>                :            : 
+<span class="lineNum">     293 </span>                :            :     size_type size() const {
+<span class="lineNum">     294 </span>[<span class="branchCov" title="Branch 0 was taken 11 times"> + </span><span class="branchCov" title="Branch 1 was taken 28196 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 39999 times"> + </span><span class="branchCov" title="Branch 3 was taken 3366 times"> + </span>]:<span class="lineCov">    8261522 :         return is_direct() ? _size : _size - N - 1;</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 13714 times"> + </span><span class="branchCov" title="Branch 5 was taken 104561 times"> + </span>][<span class="branchCov" title="Branch 6 was taken 252 times"> + </span><span class="branchCov" title="Branch 7 was taken 220301 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 336 times"> + </span><span class="branchCov" title="Branch 9 was taken 87352 times"> + </span>][<span class="branchCov" title="Branch 10 was taken 190 times"> + </span><span class="branchCov" title="Branch 11 was taken 28210 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 12 was taken 20188 times"> + </span><span class="branchCov" title="Branch 13 was taken 28210 times"> + </span>][<span class="branchCov" title="Branch 14 was taken 455612 times"> + </span><span class="branchCov" title="Branch 15 was taken 226378 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 16 was taken 461518 times"> + </span><span class="branchCov" title="Branch 17 was taken 99803 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 8 times"> + </span><span class="branchCov" title="Branch 3 was taken 28178 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 4 was taken 6900 times"> + </span><span class="branchCov" title="Branch 5 was taken 45819 times"> + </span>][<span class="branchCov" title="Branch 6 was taken 6900 times"> + </span><span class="branchCov" title="Branch 7 was taken 45819 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 41558 times"> + </span><span class="branchCov" title="Branch 9 was taken 275050 times"> + </span>][<span class="branchCov" title="Branch 10 was taken 51962 times"> + </span><span class="branchCov" title="Branch 11 was taken 407714 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>][<span class="branchNoCov" title="Branch 14 was not taken"> - </span><span class="branchCov" title="Branch 15 was taken 200068 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 16 was not taken"> - </span><span class="branchCov" title="Branch 17 was taken 133058 times"> + </span>][<span class="branchNoExec" title="Branch 18 was not executed"> # </span><span class="branchNoExec" title="Branch 19 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 20 was not taken"> - </span><span class="branchCov" title="Branch 21 was taken 67306 times"> + </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 50451 times"> + </span><span class="branchCov" title="Branch 9 was taken 132664 times"> + </span>][<span class="branchCov" title="Branch 10 was taken 40230 times"> + </span><span class="branchCov" title="Branch 11 was taken 100085 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 18 was taken 13332 times"> + </span><span class="branchNoCov" title="Branch 19 was not taken"> - </span>][<span class="branchNoExec" title="Branch 20 was not executed"> # </span><span class="branchNoExec" title="Branch 21 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 22 was not executed"> # </span><span class="branchNoExec" title="Branch 23 was not executed"> # </span>][<span class="branchNoExec" title="Branch 24 was not executed"> # </span><span class="branchNoExec" title="Branch 25 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 26 was not executed"> # </span><span class="branchNoExec" title="Branch 27 was not executed"> # </span>][<span class="branchNoExec" title="Branch 28 was not executed"> # </span><span class="branchNoExec" title="Branch 29 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 30 was not executed"> # </span><span class="branchNoExec" title="Branch 31 was not executed"> # </span>][<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 14 was not executed"> # </span><span class="branchNoExec" title="Branch 15 was not executed"> # </span>][<span class="branchNoExec" title="Branch 16 was not executed"> # </span><span class="branchNoExec" title="Branch 17 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 18 was not executed"> # </span><span class="branchNoExec" title="Branch 19 was not executed"> # </span>][<span class="branchNoExec" title="Branch 20 was not executed"> # </span><span class="branchNoExec" title="Branch 21 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 22 was not executed"> # </span><span class="branchNoExec" title="Branch 23 was not executed"> # </span>][<span class="branchNoExec" title="Branch 24 was not executed"> # </span><span class="branchNoExec" title="Branch 25 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 26 was not executed"> # </span><span class="branchNoExec" title="Branch 27 was not executed"> # </span>][<span class="branchNoExec" title="Branch 28 was not executed"> # </span><span class="branchNoExec" title="Branch 29 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 30 was not executed"> # </span><span class="branchNoExec" title="Branch 31 was not executed"> # </span>][<span class="branchNoExec" title="Branch 32 was not executed"> # </span><span class="branchNoExec" title="Branch 33 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 34 was taken 480054 times"> + </span><span class="branchCov" title="Branch 35 was taken 40047 times"> + </span>][<span class="branchCov" title="Branch 36 was taken 19998 times"> + </span><span class="branchNoCov" title="Branch 37 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 38 was not executed"> # </span><span class="branchNoExec" title="Branch 39 was not executed"> # </span>][<span class="branchNoExec" title="Branch 40 was not executed"> # </span><span class="branchNoExec" title="Branch 41 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 42 was not executed"> # </span><span class="branchNoExec" title="Branch 43 was not executed"> # </span>][<span class="branchCov" title="Branch 44 was taken 13444 times"> + </span><span class="branchCov" title="Branch 45 was taken 41530 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 46 was taken 4 times"> + </span><span class="branchCov" title="Branch 47 was taken 40063 times"> + </span>][<span class="branchNoExec" title="Branch 48 was not executed"> # </span><span class="branchNoExec" title="Branch 49 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 50 was not executed"> # </span><span class="branchNoExec" title="Branch 51 was not executed"> # </span>][<span class="branchNoExec" title="Branch 52 was not executed"> # </span><span class="branchNoExec" title="Branch 53 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 54 was not executed"> # </span><span class="branchNoExec" title="Branch 55 was not executed"> # </span>][<span class="branchCov" title="Branch 56 was taken 161 times"> + </span><span class="branchNoCov" title="Branch 57 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 58 was taken 36 times"> + </span><span class="branchCov" title="Branch 59 was taken 3347 times"> + </span>][<span class="branchNoCov" title="Branch 60 was not taken"> - </span><span class="branchCov" title="Branch 61 was taken 27535 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 62 was not taken"> - </span><span class="branchCov" title="Branch 63 was taken 40063 times"> + </span>][<span class="branchNoExec" title="Branch 64 was not executed"> # </span><span class="branchNoExec" title="Branch 65 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 8 was taken 10 times"> + </span><span class="branchCov" title="Branch 9 was taken 3340 times"> + </span>][<span class="branchCov" title="Branch 10 was taken 4 times"> + </span><span class="branchCov" title="Branch 11 was taken 14089 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 12 was taken 4 times"> + </span><span class="branchCov" title="Branch 13 was taken 14089 times"> + </span>][<span class="branchCov" title="Branch 14 was taken 4 times"> + </span><span class="branchCov" title="Branch 15 was taken 14089 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 16 was taken 4 times"> + </span><span class="branchCov" title="Branch 17 was taken 14089 times"> + </span>][<span class="branchNoCov" title="Branch 20 was not taken"> - </span><span class="branchCov" title="Branch 21 was taken 21138 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 22 was taken 68 times"> + </span><span class="branchCov" title="Branch 23 was taken 32281 times"> + </span>][<span class="branchNoCov" title="Branch 24 was not taken"> - </span><span class="branchCov" title="Branch 25 was taken 3350 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 26 was taken 34 times"> + </span><span class="branchCov" title="Branch 27 was taken 3347 times"> + </span>][<span class="branchCov" title="Branch 28 was taken 34 times"> + </span><span class="branchCov" title="Branch 29 was taken 3347 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 30 was not taken"> - </span><span class="branchCov" title="Branch 31 was taken 40063 times"> + </span>][<span class="branchCov" title="Branch 32 was taken 40055 times"> + </span><span class="branchCov" title="Branch 33 was taken 8 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 34 was not executed"> # </span><span class="branchNoExec" title="Branch 35 was not executed"> # </span>][<span class="branchNoExec" title="Branch 36 was not executed"> # </span><span class="branchNoExec" title="Branch 37 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 38 was not executed"> # </span><span class="branchNoExec" title="Branch 39 was not executed"> # </span>][<span class="branchNoExec" title="Branch 40 was not executed"> # </span><span class="branchNoExec" title="Branch 41 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 42 was not executed"> # </span><span class="branchNoExec" title="Branch 43 was not executed"> # </span>][<span class="branchNoExec" title="Branch 44 was not executed"> # </span><span class="branchNoExec" title="Branch 45 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 46 was not executed"> # </span><span class="branchNoExec" title="Branch 47 was not executed"> # </span>][<span class="branchNoExec" title="Branch 48 was not executed"> # </span><span class="branchNoExec" title="Branch 49 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 50 was not executed"> # </span><span class="branchNoExec" title="Branch 51 was not executed"> # </span>][<span class="branchNoExec" title="Branch 52 was not executed"> # </span><span class="branchNoExec" title="Branch 53 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 54 was not executed"> # </span><span class="branchNoExec" title="Branch 55 was not executed"> # </span>][<span class="branchNoExec" title="Branch 66 was not executed"> # </span><span class="branchNoExec" title="Branch 67 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 68 was not executed"> # </span><span class="branchNoExec" title="Branch 69 was not executed"> # </span>][<span class="branchNoExec" title="Branch 70 was not executed"> # </span><span class="branchNoExec" title="Branch 71 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 72 was not executed"> # </span><span class="branchNoExec" title="Branch 73 was not executed"> # </span>][<span class="branchNoExec" title="Branch 74 was not executed"> # </span><span class="branchNoExec" title="Branch 75 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 76 was not taken"> - </span><span class="branchCov" title="Branch 77 was taken 40063 times"> + </span>][<span class="branchNoExec" title="Branch 78 was not executed"> # </span><span class="branchNoExec" title="Branch 79 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 26 was not executed"> # </span><span class="branchNoExec" title="Branch 27 was not executed"> # </span>][<span class="branchNoExec" title="Branch 36 was not executed"> # </span><span class="branchNoExec" title="Branch 37 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 38 was not executed"> # </span><span class="branchNoExec" title="Branch 39 was not executed"> # </span>][<span class="branchNoExec" title="Branch 40 was not executed"> # </span><span class="branchNoExec" title="Branch 41 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 42 was not executed"> # </span><span class="branchNoExec" title="Branch 43 was not executed"> # </span>][<span class="branchCov" title="Branch 44 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 45 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 18 was not taken"> - </span><span class="branchCov" title="Branch 19 was taken 188587 times"> + </span>][<span class="branchCov" title="Branch 20 was taken 68 times"> + </span><span class="branchCov" title="Branch 21 was taken 32281 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 28 was not executed"> # </span><span class="branchNoExec" title="Branch 29 was not executed"> # </span>][<span class="branchNoExec" title="Branch 30 was not executed"> # </span><span class="branchNoExec" title="Branch 31 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 32 was taken 440007 times"> + </span><span class="branchCov" title="Branch 33 was taken 80094 times"> + </span>][<span class="branchNoExec" title="Branch 36 was not executed"> # </span><span class="branchNoExec" title="Branch 37 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 38 was not executed"> # </span><span class="branchNoExec" title="Branch 39 was not executed"> # </span>][<span class="branchNoExec" title="Branch 40 was not executed"> # </span><span class="branchNoExec" title="Branch 41 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 44 was not executed"> # </span><span class="branchNoExec" title="Branch 45 was not executed"> # </span>][<span class="branchNoExec" title="Branch 50 was not executed"> # </span><span class="branchNoExec" title="Branch 51 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 52 was not executed"> # </span><span class="branchNoExec" title="Branch 53 was not executed"> # </span>][<span class="branchNoExec" title="Branch 54 was not executed"> # </span><span class="branchNoExec" title="Branch 55 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 56 was not executed"> # </span><span class="branchNoExec" title="Branch 57 was not executed"> # </span>][<span class="branchNoExec" title="Branch 58 was not executed"> # </span><span class="branchNoExec" title="Branch 59 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 26 was not executed"> # </span><span class="branchNoExec" title="Branch 27 was not executed"> # </span>][<span class="branchNoCov" title="Branch 28 was not taken"> - </span><span class="branchCov" title="Branch 29 was taken 188587 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 22 was not executed"> # </span><span class="branchNoExec" title="Branch 23 was not executed"> # </span>][<span class="branchNoExec" title="Branch 24 was not executed"> # </span><span class="branchNoExec" title="Branch 25 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 32 was not executed"> # </span><span class="branchNoExec" title="Branch 33 was not executed"> # </span>][<span class="branchNoExec" title="Branch 34 was not executed"> # </span><span class="branchNoExec" title="Branch 35 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 42 was not executed"> # </span><span class="branchNoExec" title="Branch 43 was not executed"> # </span>][<span class="branchCov" title="Branch 44 was taken 4 times"> + </span><span class="branchCov" title="Branch 45 was taken 40063 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 50 was not executed"> # </span><span class="branchNoExec" title="Branch 51 was not executed"> # </span>][<span class="branchNoExec" title="Branch 56 was not executed"> # </span><span class="branchNoExec" title="Branch 57 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 58 was not executed"> # </span><span class="branchNoExec" title="Branch 59 was not executed"> # </span>][<span class="branchNoExec" title="Branch 60 was not executed"> # </span><span class="branchNoExec" title="Branch 61 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 62 was not executed"> # </span><span class="branchNoExec" title="Branch 63 was not executed"> # </span>][<span class="branchNoExec" title="Branch 64 was not executed"> # </span><span class="branchNoExec" title="Branch 65 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 66 was not executed"> # </span><span class="branchNoExec" title="Branch 67 was not executed"> # </span>][<span class="branchNoExec" title="Branch 68 was not executed"> # </span><span class="branchNoExec" title="Branch 69 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 70 was not executed"> # </span><span class="branchNoExec" title="Branch 71 was not executed"> # </span>][<span class="branchNoExec" title="Branch 72 was not executed"> # </span><span class="branchNoExec" title="Branch 73 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 74 was not executed"> # </span><span class="branchNoExec" title="Branch 75 was not executed"> # </span>][<span class="branchNoExec" title="Branch 76 was not executed"> # </span><span class="branchNoExec" title="Branch 77 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 78 was not executed"> # </span><span class="branchNoExec" title="Branch 79 was not executed"> # </span>][<span class="branchNoExec" title="Branch 80 was not executed"> # </span><span class="branchNoExec" title="Branch 81 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 82 was not executed"> # </span><span class="branchNoExec" title="Branch 83 was not executed"> # </span>][<span class="branchNoExec" title="Branch 84 was not executed"> # </span><span class="branchNoExec" title="Branch 85 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 46 was taken 13444 times"> + </span><span class="branchCov" title="Branch 47 was taken 41530 times"> + </span>][<span class="branchCov" title="Branch 48 was taken 40047 times"> + </span><span class="branchNoCov" title="Branch 49 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 50 was taken 40047 times"> + </span><span class="branchNoCov" title="Branch 51 was not taken"> - </span>][<span class="branchCov" title="Branch 52 was taken 440007 times"> + </span><span class="branchCov" title="Branch 53 was taken 80094 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 54 was taken 520101 times"> + </span><span class="branchNoCov" title="Branch 55 was not taken"> - </span>][<span class="branchNoExec" title="Branch 56 was not executed"> # </span><span class="branchNoExec" title="Branch 57 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 58 was not executed"> # </span><span class="branchNoExec" title="Branch 59 was not executed"> # </span>][<span class="branchCov" title="Branch 60 was taken 1560303 times"> + </span><span class="branchNoCov" title="Branch 61 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 62 was taken 107119 times"> + </span><span class="branchCov" title="Branch 63 was taken 37425 times"> + </span>][<span class="branchNoExec" title="Branch 64 was not executed"> # </span><span class="branchNoExec" title="Branch 65 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 66 was not executed"> # </span><span class="branchNoExec" title="Branch 67 was not executed"> # </span>][<span class="branchNoExec" title="Branch 68 was not executed"> # </span><span class="branchNoExec" title="Branch 69 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 70 was not executed"> # </span><span class="branchNoExec" title="Branch 71 was not executed"> # </span>][<span class="branchNoExec" title="Branch 72 was not executed"> # </span><span class="branchNoExec" title="Branch 73 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 74 was not executed"> # </span><span class="branchNoExec" title="Branch 75 was not executed"> # </span>][<span class="branchNoExec" title="Branch 76 was not executed"> # </span><span class="branchNoExec" title="Branch 77 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 78 was not executed"> # </span><span class="branchNoExec" title="Branch 79 was not executed"> # </span>][<span class="branchNoExec" title="Branch 80 was not executed"> # </span><span class="branchNoExec" title="Branch 81 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 42 was not executed"> # </span><span class="branchNoExec" title="Branch 43 was not executed"> # </span>][<span class="branchNoExec" title="Branch 46 was not executed"> # </span><span class="branchNoExec" title="Branch 47 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 48 was not executed"> # </span><span class="branchNoExec" title="Branch 49 was not executed"> # </span>][<span class="branchNoExec" title="Branch 50 was not executed"> # </span><span class="branchNoExec" title="Branch 51 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 52 was not executed"> # </span><span class="branchNoExec" title="Branch 53 was not executed"> # </span>][<span class="branchNoExec" title="Branch 54 was not executed"> # </span><span class="branchNoExec" title="Branch 55 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 64 was not executed"> # </span><span class="branchNoExec" title="Branch 65 was not executed"> # </span>][<span class="branchNoExec" title="Branch 66 was not executed"> # </span><span class="branchNoExec" title="Branch 67 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 68 was not executed"> # </span><span class="branchNoExec" title="Branch 69 was not executed"> # </span>][<span class="branchNoExec" title="Branch 70 was not executed"> # </span><span class="branchNoExec" title="Branch 71 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 80 was not executed"> # </span><span class="branchNoExec" title="Branch 81 was not executed"> # </span>][<span class="branchNoExec" title="Branch 82 was not executed"> # </span><span class="branchNoExec" title="Branch 83 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 84 was not executed"> # </span><span class="branchNoExec" title="Branch 85 was not executed"> # </span>][<span class="branchNoExec" title="Branch 86 was not executed"> # </span><span class="branchNoExec" title="Branch 87 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 88 was not executed"> # </span><span class="branchNoExec" title="Branch 89 was not executed"> # </span>][<span class="branchNoExec" title="Branch 90 was not executed"> # </span><span class="branchNoExec" title="Branch 91 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 92 was not executed"> # </span><span class="branchNoExec" title="Branch 93 was not executed"> # </span>][<span class="branchNoExec" title="Branch 94 was not executed"> # </span><span class="branchNoExec" title="Branch 95 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 96 was not executed"> # </span><span class="branchNoExec" title="Branch 97 was not executed"> # </span>][<span class="branchNoExec" title="Branch 98 was not executed"> # </span><span class="branchNoExec" title="Branch 99 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 100 was not executed"> # </span><span class="branchNoExec" title="Branch 101 was not executed"> # </span>][<span class="branchNoExec" title="Branch 102 was not executed"> # </span><span class="branchNoExec" title="Branch 103 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 104 was not executed"> # </span><span class="branchNoExec" title="Branch 105 was not executed"> # </span>][<span class="branchNoExec" title="Branch 106 was not executed"> # </span><span class="branchNoExec" title="Branch 107 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 108 was not executed"> # </span><span class="branchNoExec" title="Branch 109 was not executed"> # </span>][<span class="branchNoExec" title="Branch 110 was not executed"> # </span><span class="branchNoExec" title="Branch 111 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 112 was not executed"> # </span><span class="branchNoExec" title="Branch 113 was not executed"> # </span>][<span class="branchNoExec" title="Branch 114 was not executed"> # </span><span class="branchNoExec" title="Branch 115 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 116 was not executed"> # </span><span class="branchNoExec" title="Branch 117 was not executed"> # </span>][<span class="branchNoExec" title="Branch 118 was not executed"> # </span><span class="branchNoExec" title="Branch 119 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 120 was not executed"> # </span><span class="branchNoExec" title="Branch 121 was not executed"> # </span>]
+<span class="lineNum">     295 </span>                :            :     }
+<span class="lineNum">     296 </span>                :            : 
+<span class="lineNum">     297 </span>                :            :     bool empty() const {
+<span class="lineNum">     298 </span>                :<span class="lineCov">     552442 :         return size() == 0;</span>
+<span class="lineNum">     299 </span>                :            :     }
+<span class="lineNum">     300 </span>                :            : 
+<span class="lineNum">     301 </span>                :<span class="lineCov">     680325 :     iterator begin() { return iterator(item_ptr(0)); }</span>
+<span class="lineNum">     302 </span>                :<span class="lineCov">     844885 :     const_iterator begin() const { return const_iterator(item_ptr(0)); }</span>
+<span class="lineNum">     303 </span>                :<span class="lineCov">    1880787 :     iterator end() { return iterator(item_ptr(size())); }</span>
+<span class="lineNum">     304 </span>                :<span class="lineCov">    8870050 :     const_iterator end() const { return const_iterator(item_ptr(size())); }</span>
+<span class="lineNum">     305 </span>                :            : 
+<span class="lineNum">     306 </span>                :            :     reverse_iterator rbegin() { return reverse_iterator(item_ptr(size() - 1)); }
+<span class="lineNum">     307 </span>                :            :     const_reverse_iterator rbegin() const { return const_reverse_iterator(item_ptr(size() - 1)); }
+<span class="lineNum">     308 </span>                :            :     reverse_iterator rend() { return reverse_iterator(item_ptr(-1)); }
+<span class="lineNum">     309 </span>                :            :     const_reverse_iterator rend() const { return const_reverse_iterator(item_ptr(-1)); }
+<span class="lineNum">     310 </span>                :            : 
+<span class="lineNum">     311 </span>                :            :     size_t capacity() const {
+<span class="lineNum">     312 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 6796 times"> + </span>]:<span class="lineCov">     655928 :         if (is_direct()) {</span>
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span><span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 48901 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 40063 times"> + </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>][<span class="branchCov" title="Branch 8 was taken 440007 times"> + </span><span class="branchCov" title="Branch 9 was taken 80094 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>][<span class="branchCov" title="Branch 8 was taken 4 times"> + </span><span class="branchCov" title="Branch 9 was taken 40063 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>][<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 14 was not executed"> # </span><span class="branchNoExec" title="Branch 15 was not executed"> # </span>]
+<span class="lineNum">     313 </span>                :            :             return N;
+<span class="lineNum">     314 </span>                :            :         } else {
+<span class="lineNum">     315 </span>                :<span class="lineCov">     440011 :             return _union.capacity;</span>
+<span class="lineNum">     316 </span>                :            :         }
+<span class="lineNum">     317 </span>                :            :     }
+<span class="lineNum">     318 </span>                :            : 
+<span class="lineNum">     319 </span>                :            :     T&amp; operator[](size_type pos) {
+<span class="lineNum">     320 </span>                :<span class="lineCov">     111160 :         return *item_ptr(pos);</span>
+<span class="lineNum">     321 </span>                :            :     }
+<span class="lineNum">     322 </span>                :            : 
+<span class="lineNum">     323 </span>                :            :     const T&amp; operator[](size_type pos) const {
+<span class="lineNum">     324 </span>                :<span class="lineCov">     435436 :         return *item_ptr(pos);</span>
+<a name="325"><span class="lineNum">     325 </span>                :            :     }</a>
+<span class="lineNum">     326 </span>                :            : 
+<span class="lineNum">     327 </span>                :<span class="lineCov">     556337 :     void resize(size_type new_size) {</span>
+<span class="lineNum">     328 </span>                :<span class="lineCov">     556337 :         size_type cur_size = size();</span>
+<span class="lineNum">     329 </span>        [<span class="branchCov" title="Branch 0 was taken 48901 times"> + </span><span class="branchCov" title="Branch 1 was taken 507436 times"> + </span>]:<span class="lineCov">     556337 :         if (cur_size == new_size) {</span>
+<span class="lineNum">     330 </span>                :            :             return;
+<span class="lineNum">     331 </span>                :            :         }
+<span class="lineNum">     332 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 48901 times"> + </span>]:<span class="lineCov">      48901 :         if (cur_size &gt; new_size) {</span>
+<span class="lineNum">     333 </span>                :<span class="lineNoCov">          0 :             erase(item_ptr(new_size), end());</span>
+<span class="lineNum">     334 </span>                :<span class="lineNoCov">          0 :             return;</span>
+<span class="lineNum">     335 </span>                :            :         }
+<span class="lineNum">     336 </span>        [<span class="branchCov" title="Branch 0 was taken 10413 times"> + </span><span class="branchCov" title="Branch 1 was taken 38488 times"> + </span>]:<span class="lineCov">      48901 :         if (new_size &gt; capacity()) {</span>
+<span class="lineNum">     337 </span>                :<span class="lineCov">      10413 :             change_capacity(new_size);</span>
+<span class="lineNum">     338 </span>                :            :         }
+<span class="lineNum">     339 </span>                :<span class="lineCov">      48901 :         ptrdiff_t increase = new_size - cur_size;</span>
+<span class="lineNum">     340 </span>                :<span class="lineCov">     146703 :         fill(item_ptr(cur_size), increase);</span>
+<span class="lineNum">     341 </span>                :<span class="lineCov">      48901 :         _size += increase;</span>
+<span class="lineNum">     342 </span>                :            :     }
+<span class="lineNum">     343 </span>                :            : 
+<span class="lineNum">     344 </span>                :            :     void reserve(size_type new_capacity) {
+<span class="lineNum">     345 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (new_capacity &gt; capacity()) {</span>
+<span class="lineNum">     346 </span>                :<span class="lineNoCov">          0 :             change_capacity(new_capacity);</span>
+<span class="lineNum">     347 </span>                :            :         }
+<span class="lineNum">     348 </span>                :            :     }
+<span class="lineNum">     349 </span>                :            : 
+<span class="lineNum">     350 </span>                :            :     void shrink_to_fit() {
+<span class="lineNum">     351 </span>                :<span class="lineCov">     437624 :         change_capacity(size());</span>
+<span class="lineNum">     352 </span>                :            :     }
+<span class="lineNum">     353 </span>                :            : 
+<span class="lineNum">     354 </span>                :            :     void clear() {
+<span class="lineNum">     355 </span>                :<span class="lineCov">     507436 :         resize(0);</span>
+<a name="356"><span class="lineNum">     356 </span>                :            :     }</a>
+<span class="lineNum">     357 </span>                :            : 
+<span class="lineNum">     358 </span>                :<span class="lineCov">      40067 :     iterator insert(iterator pos, const T&amp; value) {</span>
+<span class="lineNum">     359 </span>                :<span class="lineCov">      80134 :         size_type p = pos - begin();</span>
+<span class="lineNum">     360 </span>                :<span class="lineCov">      40067 :         size_type new_size = size() + 1;</span>
+<span class="lineNum">     361 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 40067 times"> + </span>]:<span class="lineCov">      40067 :         if (capacity() &lt; new_size) {</span>
+<span class="lineNum">     362 </span>                :<span class="lineNoCov">          0 :             change_capacity(new_size + (new_size &gt;&gt; 1));</span>
+<span class="lineNum">     363 </span>                :            :         }
+<span class="lineNum">     364 </span>                :<span class="lineCov">      80134 :         T* ptr = item_ptr(p);</span>
+<span class="lineNum">     365 </span>                :<span class="lineCov">      80134 :         memmove(ptr + 1, ptr, (size() - p) * sizeof(T));</span>
+<span class="lineNum">     366 </span>                :<span class="lineCov">      40067 :         _size++;</span>
+<span class="lineNum">     367 </span>        [<span class="branchCov" title="Branch 0 was taken 40067 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      40067 :         new(static_cast&lt;void*&gt;(ptr)) T(value);</span>
+<span class="lineNum">     368 </span>                :<span class="lineCov">      40067 :         return iterator(ptr);</span>
+<span class="lineNum">     369 </span>                :            :     }
+<span class="lineNum">     370 </span>                :            : 
+<span class="lineNum">     371 </span>                :            :     void insert(iterator pos, size_type count, const T&amp; value) {
+<span class="lineNum">     372 </span>                :            :         size_type p = pos - begin();
+<span class="lineNum">     373 </span>                :            :         size_type new_size = size() + count;
+<span class="lineNum">     374 </span>                :            :         if (capacity() &lt; new_size) {
+<span class="lineNum">     375 </span>                :            :             change_capacity(new_size + (new_size &gt;&gt; 1));
+<span class="lineNum">     376 </span>                :            :         }
+<span class="lineNum">     377 </span>                :            :         T* ptr = item_ptr(p);
+<span class="lineNum">     378 </span>                :            :         memmove(ptr + count, ptr, (size() - p) * sizeof(T));
+<span class="lineNum">     379 </span>                :            :         _size += count;
+<span class="lineNum">     380 </span>                :            :         fill(item_ptr(p), count, value);
+<span class="lineNum">     381 </span>                :            :     }
+<a name="382"><span class="lineNum">     382 </span>                :            : </a>
+<span class="lineNum">     383 </span>                :            :     template&lt;typename InputIterator&gt;
+<span class="lineNum">     384 </span>                :<span class="lineCov">     560164 :     void insert(iterator pos, InputIterator first, InputIterator last) {</span>
+<span class="lineNum">     385 </span>                :<span class="lineCov">    1120328 :         size_type p = pos - begin();</span>
+<span class="lineNum">     386 </span>                :<span class="lineCov">     560164 :         difference_type count = last - first;</span>
+<span class="lineNum">     387 </span>                :<span class="lineCov">     560164 :         size_type new_size = size() + count;</span>
+<span class="lineNum">     388 </span>[<span class="branchCov" title="Branch 0 was taken 40055 times"> + </span><span class="branchCov" title="Branch 1 was taken 8 times"> + </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineCov">     560164 :         if (capacity() &lt; new_size) {</span>
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 4 was taken 40047 times"> + </span><span class="branchCov" title="Branch 5 was taken 480054 times"> + </span>]
+<span class="lineNum">     389 </span>                :<span class="lineCov">      80102 :             change_capacity(new_size + (new_size &gt;&gt; 1));</span>
+<span class="lineNum">     390 </span>                :            :         }
+<span class="lineNum">     391 </span>                :<span class="lineCov">    1120328 :         T* ptr = item_ptr(p);</span>
+<span class="lineNum">     392 </span>                :<span class="lineCov">    1120328 :         memmove(ptr + count, ptr, (size() - p) * sizeof(T));</span>
+<span class="lineNum">     393 </span>                :<span class="lineCov">     560164 :         _size += count;</span>
+<span class="lineNum">     394 </span>                :<span class="lineCov">     560164 :         fill(ptr, first, last);</span>
+<span class="lineNum">     395 </span>                :<span class="lineCov">     560164 :     }</span>
+<span class="lineNum">     396 </span>                :            : 
+<span class="lineNum">     397 </span>                :            :     iterator erase(iterator pos) {
+<span class="lineNum">     398 </span>                :            :         return erase(pos, pos + 1);
+<a name="399"><span class="lineNum">     399 </span>                :            :     }</a>
+<span class="lineNum">     400 </span>                :            : 
+<span class="lineNum">     401 </span>                :<span class="lineNoCov">          0 :     iterator erase(iterator first, iterator last) {</span>
+<span class="lineNum">     402 </span>                :            :         // Erase is not allowed to the change the object's capacity. That means
+<span class="lineNum">     403 </span>                :            :         // that when starting with an indirectly allocated prevector with
+<span class="lineNum">     404 </span>                :            :         // size and capacity &gt; N, the result may be a still indirectly allocated
+<span class="lineNum">     405 </span>                :            :         // prevector with size &lt;= N and capacity &gt; N. A shrink_to_fit() call is
+<span class="lineNum">     406 </span>                :            :         // necessary to switch to the (more efficient) directly allocated
+<span class="lineNum">     407 </span>                :            :         // representation (with capacity N and size &lt;= N).
+<span class="lineNum">     408 </span>                :<span class="lineNoCov">          0 :         iterator p = first;</span>
+<span class="lineNum">     409 </span>                :<span class="lineNoCov">          0 :         char* endp = (char*)&amp;(*end());</span>
+<span class="lineNum">     410 </span>                :            :         if (!std::is_trivially_destructible&lt;T&gt;::value) {
+<span class="lineNum">     411 </span>                :            :             while (p != last) {
+<span class="lineNum">     412 </span>                :            :                 (*p).~T();
+<span class="lineNum">     413 </span>                :            :                 _size--;
+<span class="lineNum">     414 </span>                :            :                 ++p;
+<span class="lineNum">     415 </span>                :            :             }
+<span class="lineNum">     416 </span>                :            :         } else {
+<span class="lineNum">     417 </span>                :<span class="lineNoCov">          0 :             _size -= last - p;</span>
+<span class="lineNum">     418 </span>                :            :         }
+<span class="lineNum">     419 </span>                :<span class="lineNoCov">          0 :         memmove(&amp;(*first), &amp;(*last), endp - ((char*)(&amp;(*last))));</span>
+<span class="lineNum">     420 </span>                :<span class="lineNoCov">          0 :         return first;</span>
+<a name="421"><span class="lineNum">     421 </span>                :            :     }</a>
+<span class="lineNum">     422 </span>                :            : 
+<span class="lineNum">     423 </span>                :<span class="lineNoCov">          0 :     void push_back(const T&amp; value) {</span>
+<span class="lineNum">     424 </span>                :<span class="lineNoCov">          0 :         size_type new_size = size() + 1;</span>
+<span class="lineNum">     425 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (capacity() &lt; new_size) {</span>
+<span class="lineNum">     426 </span>                :<span class="lineNoCov">          0 :             change_capacity(new_size + (new_size &gt;&gt; 1));</span>
+<span class="lineNum">     427 </span>                :            :         }
+<span class="lineNum">     428 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         new(item_ptr(size())) T(value);</span>
+<span class="lineNum">     429 </span>                :<span class="lineNoCov">          0 :         _size++;</span>
+<span class="lineNum">     430 </span>                :<span class="lineNoCov">          0 :     }</span>
+<span class="lineNum">     431 </span>                :            : 
+<span class="lineNum">     432 </span>                :            :     void pop_back() {
+<span class="lineNum">     433 </span>                :            :         erase(end() - 1, end());
+<span class="lineNum">     434 </span>                :            :     }
+<span class="lineNum">     435 </span>                :            : 
+<span class="lineNum">     436 </span>                :            :     T&amp; front() {
+<span class="lineNum">     437 </span>                :            :         return *item_ptr(0);
+<span class="lineNum">     438 </span>                :            :     }
+<span class="lineNum">     439 </span>                :            : 
+<span class="lineNum">     440 </span>                :            :     const T&amp; front() const {
+<span class="lineNum">     441 </span>                :            :         return *item_ptr(0);
+<span class="lineNum">     442 </span>                :            :     }
+<span class="lineNum">     443 </span>                :            : 
+<span class="lineNum">     444 </span>                :            :     T&amp; back() {
+<span class="lineNum">     445 </span>                :            :         return *item_ptr(size() - 1);
+<span class="lineNum">     446 </span>                :            :     }
+<span class="lineNum">     447 </span>                :            : 
+<span class="lineNum">     448 </span>                :            :     const T&amp; back() const {
+<span class="lineNum">     449 </span>                :<span class="lineNoCov">          0 :         return *item_ptr(size() - 1);</span>
+<span class="lineNum">     450 </span>                :            :     }
+<span class="lineNum">     451 </span>                :            : 
+<span class="lineNum">     452 </span>                :            :     void swap(prevector&lt;N, T, Size, Diff&gt;&amp; other) {
+<span class="lineNum">     453 </span>                :<span class="lineCov">     698832 :         std::swap(_union, other._union);</span>
+<span class="lineNum">     454 </span>                :<span class="lineCov">     698832 :         std::swap(_size, other._size);</span>
+<span class="lineNum">     455 </span>                :            :     }
+<span class="lineNum">     456 </span>                :            : 
+<span class="lineNum">     457 </span>                :            :     ~prevector() {
+<span class="lineNum">     458 </span>                :            :         if (!std::is_trivially_destructible&lt;T&gt;::value) {
+<span class="lineNum">     459 </span>                :            :             clear();
+<span class="lineNum">     460 </span>                :            :         }
+<span class="lineNum">     461 </span>  [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span> :<span class="lineCov">     996411 :         if (!is_direct()) {</span>
+<span class="lineNum">         </span> <span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>][<span class="branchNoCov" title="Branch 6 was not taken"> - </span><span class="branchCov" title="Branch 7 was taken 88336 times"> + </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span><span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span> 
+<span class="lineNum">         </span>   <span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span><span class="branchNoExec" title="Branch 14 was not executed"> # </span><span class="branchNoExec" title="Branch 15 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 16 was not executed"> # </span><span class="branchNoExec" title="Branch 17 was not executed"> # </span><span class="branchNoExec" title="Branch 18 was not executed"> # </span><span class="branchNoExec" title="Branch 19 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoCov" title="Branch 8 was not taken"> - </span><span class="branchCov" title="Branch 9 was taken 76964 times"> + </span>]
+<span class="lineNum">         </span>  [<span class="branchNoCov" title="Branch 10 was not taken"> - </span><span class="branchCov" title="Branch 11 was taken 21134 times"> + </span><span class="branchCov" title="Branch 12 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 14 was not executed"> # </span><span class="branchNoExec" title="Branch 15 was not executed"> # </span>][<span class="branchCov" title="Branch 16 was taken 287 times"> + </span><span class="branchCov" title="Branch 17 was taken 31600 times"> + </span>]
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 18 was taken 6666 times"> + </span><span class="branchNoCov" title="Branch 19 was not taken"> - </span><span class="branchNoExec" title="Branch 20 was not executed"> # </span><span class="branchNoExec" title="Branch 21 was not executed"> # </span> 
+<span class="lineNum">         </span>   <span class="branchNoCov" title="Branch 22 was not taken"> - </span><span class="branchCov" title="Branch 23 was taken 17722 times"> + </span><span class="branchCov" title="Branch 24 was taken 10109 times"> + </span><span class="branchCov" title="Branch 25 was taken 77537 times"> + </span>]
+<span class="lineNum">         </span>  [<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 21138 times"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span><span class="branchCov" title="Branch 5 was taken 88336 times"> + </span> 
+<span class="lineNum">         </span> <span class="branchCov" title="Branch 0 was taken 6859 times"> + </span><span class="branchCov" title="Branch 1 was taken 55905 times"> + </span>][<span class="branchNoCov" title="Branch 16 was not taken"> - </span><span class="branchCov" title="Branch 17 was taken 1 time"> + </span> 
+<span class="lineNum">         </span><span class="branchNoExec" title="Branch 18 was not executed"> # </span><span class="branchNoExec" title="Branch 19 was not executed"> # </span><span class="branchNoExec" title="Branch 20 was not executed"> # </span><span class="branchNoExec" title="Branch 21 was not executed"> # </span><span class="branchNoExec" title="Branch 22 was not executed"> # </span> 
+<span class="lineNum">         </span><span class="branchNoExec" title="Branch 23 was not executed"> # </span><span class="branchNoExec" title="Branch 24 was not executed"> # </span><span class="branchNoExec" title="Branch 25 was not executed"> # </span><span class="branchNoExec" title="Branch 26 was not executed"> # </span><span class="branchNoExec" title="Branch 27 was not executed"> # </span> 
+<span class="lineNum">         </span>   <span class="branchNoExec" title="Branch 28 was not executed"> # </span><span class="branchNoExec" title="Branch 29 was not executed"> # </span><span class="branchNoExec" title="Branch 30 was not executed"> # </span><span class="branchNoExec" title="Branch 31 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 32 was not executed"> # </span><span class="branchNoExec" title="Branch 33 was not executed"> # </span><span class="branchNoExec" title="Branch 34 was not executed"> # </span><span class="branchNoExec" title="Branch 35 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 36 was not executed"> # </span><span class="branchNoExec" title="Branch 37 was not executed"> # </span>][<span class="branchNoExec" title="Branch 38 was not executed"> # </span><span class="branchNoExec" title="Branch 39 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 40 was not executed"> # </span><span class="branchNoExec" title="Branch 41 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoCov" title="Branch 42 was not taken"> - </span><span class="branchCov" title="Branch 43 was taken 24154 times"> + </span><span class="branchNoExec" title="Branch 44 was not executed"> # </span><span class="branchNoExec" title="Branch 45 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoCov" title="Branch 12 was not taken"> - </span><span class="branchCov" title="Branch 13 was taken 39996 times"> + </span><span class="branchNoExec" title="Branch 14 was not executed"> # </span><span class="branchNoExec" title="Branch 15 was not executed"> # </span> 
+<span class="lineNum">         </span> <span class="branchNoExec" title="Branch 16 was not executed"> # </span><span class="branchNoExec" title="Branch 17 was not executed"> # </span>][<span class="branchCov" title="Branch 4 was taken 8 times"> + </span><span class="branchCov" title="Branch 5 was taken 28392 times"> + </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoCov" title="Branch 22 was not taken"> - </span><span class="branchCov" title="Branch 23 was taken 17652 times"> + </span><span class="branchNoExec" title="Branch 24 was not executed"> # </span><span class="branchNoExec" title="Branch 25 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 26 was not executed"> # </span><span class="branchNoExec" title="Branch 27 was not executed"> # </span>][<span class="branchNoExec" title="Branch 28 was not executed"> # </span><span class="branchNoExec" title="Branch 29 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 30 was taken 61 times"> + </span><span class="branchCov" title="Branch 31 was taken 24093 times"> + </span>][<span class="branchNoExec" title="Branch 32 was not executed"> # </span><span class="branchNoExec" title="Branch 33 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 34 was taken 3 times"> + </span><span class="branchCov" title="Branch 35 was taken 8188 times"> + </span>][<span class="branchNoExec" title="Branch 36 was not executed"> # </span><span class="branchNoExec" title="Branch 37 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoCov" title="Branch 38 was not taken"> - </span><span class="branchCov" title="Branch 39 was taken 24154 times"> + </span><span class="branchNoExec" title="Branch 40 was not executed"> # </span><span class="branchNoExec" title="Branch 41 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 44 was not executed"> # </span><span class="branchNoExec" title="Branch 45 was not executed"> # </span>][<span class="branchNoExec" title="Branch 46 was not executed"> # </span><span class="branchNoExec" title="Branch 47 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 48 was not taken"> - </span><span class="branchCov" title="Branch 49 was taken 24154 times"> + </span>][<span class="branchNoExec" title="Branch 50 was not executed"> # </span><span class="branchNoExec" title="Branch 51 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 52 was taken 61 times"> + </span><span class="branchCov" title="Branch 53 was taken 30791 times"> + </span>][<span class="branchNoExec" title="Branch 54 was not executed"> # </span><span class="branchNoExec" title="Branch 55 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoCov" title="Branch 56 was not taken"> - </span><span class="branchCov" title="Branch 57 was taken 72462 times"> + </span><span class="branchNoExec" title="Branch 58 was not executed"> # </span><span class="branchNoExec" title="Branch 59 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 60 was not executed"> # </span><span class="branchNoExec" title="Branch 61 was not executed"> # </span>][<span class="branchNoExec" title="Branch 62 was not executed"> # </span><span class="branchNoExec" title="Branch 63 was not executed"> # </span> 
+<span class="lineNum">         </span><span class="branchNoExec" title="Branch 64 was not executed"> # </span><span class="branchNoExec" title="Branch 65 was not executed"> # </span><span class="branchNoExec" title="Branch 66 was not executed"> # </span><span class="branchNoExec" title="Branch 67 was not executed"> # </span><span class="branchNoExec" title="Branch 68 was not executed"> # </span> 
+<span class="lineNum">         </span>      <span class="branchNoExec" title="Branch 69 was not executed"> # </span><span class="branchNoExec" title="Branch 70 was not executed"> # </span><span class="branchNoExec" title="Branch 71 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 72 was taken 34 times"> + </span><span class="branchCov" title="Branch 73 was taken 3347 times"> + </span><span class="branchNoExec" title="Branch 74 was not executed"> # </span><span class="branchNoExec" title="Branch 75 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 76 was not taken"> - </span><span class="branchCov" title="Branch 77 was taken 24154 times"> + </span>][<span class="branchNoExec" title="Branch 78 was not executed"> # </span><span class="branchNoExec" title="Branch 79 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 80 was not executed"> # </span><span class="branchNoExec" title="Branch 81 was not executed"> # </span>][<span class="branchNoCov" title="Branch 82 was not taken"> - </span><span class="branchCov" title="Branch 83 was taken 24154 times"> + </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 84 was not executed"> # </span><span class="branchNoExec" title="Branch 85 was not executed"> # </span><span class="branchNoExec" title="Branch 86 was not executed"> # </span><span class="branchNoExec" title="Branch 87 was not executed"> # </span> 
+<span class="lineNum">         </span>   <span class="branchNoExec" title="Branch 88 was not executed"> # </span><span class="branchNoExec" title="Branch 89 was not executed"> # </span><span class="branchNoExec" title="Branch 90 was not executed"> # </span><span class="branchNoExec" title="Branch 91 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 92 was not executed"> # </span><span class="branchNoExec" title="Branch 93 was not executed"> # </span>][<span class="branchNoExec" title="Branch 94 was not executed"> # </span><span class="branchNoExec" title="Branch 95 was not executed"> # </span> 
+<span class="lineNum">         </span>   <span class="branchNoExec" title="Branch 96 was not executed"> # </span><span class="branchNoExec" title="Branch 97 was not executed"> # </span><span class="branchNoExec" title="Branch 98 was not executed"> # </span><span class="branchNoExec" title="Branch 99 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoCov" title="Branch 100 was not taken"> - </span><span class="branchCov" title="Branch 101 was taken 1 time"> + </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchCov" title="Branch 10 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 14 was not executed"> # </span><span class="branchNoExec" title="Branch 15 was not executed"> # </span><span class="branchNoExec" title="Branch 16 was not executed"> # </span><span class="branchNoExec" title="Branch 17 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 18 was taken 4 times"> + </span><span class="branchNoCov" title="Branch 19 was not taken"> - </span><span class="branchNoExec" title="Branch 20 was not executed"> # </span><span class="branchNoExec" title="Branch 21 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 8 was not executed"> # </span><span class="branchNoExec" title="Branch 9 was not executed"> # </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span><span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 14 was not executed"> # </span><span class="branchNoExec" title="Branch 15 was not executed"> # </span><span class="branchNoExec" title="Branch 16 was not executed"> # </span><span class="branchNoExec" title="Branch 17 was not executed"> # </span> 
+<span class="lineNum">         </span>   <span class="branchNoExec" title="Branch 18 was not executed"> # </span><span class="branchNoExec" title="Branch 19 was not executed"> # </span><span class="branchNoExec" title="Branch 20 was not executed"> # </span><span class="branchNoExec" title="Branch 21 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span><span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span> 
+<span class="lineNum">         </span> <span class="branchNoExec" title="Branch 14 was not executed"> # </span><span class="branchNoExec" title="Branch 15 was not executed"> # </span>][<span class="branchNoExec" title="Branch 22 was not executed"> # </span><span class="branchNoExec" title="Branch 23 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 24 was not executed"> # </span><span class="branchNoExec" title="Branch 25 was not executed"> # </span>][<span class="branchNoExec" title="Branch 28 was not executed"> # </span><span class="branchNoExec" title="Branch 29 was not executed"> # </span> 
+<span class="lineNum">         </span>   <span class="branchNoExec" title="Branch 30 was not executed"> # </span><span class="branchNoExec" title="Branch 31 was not executed"> # </span><span class="branchNoExec" title="Branch 32 was not executed"> # </span><span class="branchNoExec" title="Branch 33 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 34 was not executed"> # </span><span class="branchNoExec" title="Branch 35 was not executed"> # </span><span class="branchNoExec" title="Branch 36 was not executed"> # </span><span class="branchNoExec" title="Branch 37 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 38 was not executed"> # </span><span class="branchNoExec" title="Branch 39 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 40 was not executed"> # </span><span class="branchNoExec" title="Branch 41 was not executed"> # </span><span class="branchNoExec" title="Branch 42 was not executed"> # </span><span class="branchNoExec" title="Branch 43 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span><span class="branchNoExec" title="Branch 22 was not executed"> # </span><span class="branchNoExec" title="Branch 23 was not executed"> # </span> 
+<span class="lineNum">         </span> <span class="branchNoExec" title="Branch 24 was not executed"> # </span><span class="branchNoExec" title="Branch 25 was not executed"> # </span>][<span class="branchNoExec" title="Branch 28 was not executed"> # </span><span class="branchNoExec" title="Branch 29 was not executed"> # </span> 
+<span class="lineNum">         </span>   <span class="branchNoExec" title="Branch 30 was not executed"> # </span><span class="branchNoExec" title="Branch 31 was not executed"> # </span><span class="branchNoExec" title="Branch 32 was not executed"> # </span><span class="branchNoExec" title="Branch 33 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 38 was not executed"> # </span><span class="branchNoExec" title="Branch 39 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 40 was not executed"> # </span><span class="branchNoExec" title="Branch 41 was not executed"> # </span><span class="branchNoExec" title="Branch 42 was not executed"> # </span><span class="branchNoExec" title="Branch 43 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 44 was not executed"> # </span><span class="branchNoExec" title="Branch 45 was not executed"> # </span>][<span class="branchNoExec" title="Branch 46 was not executed"> # </span><span class="branchNoExec" title="Branch 47 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 48 was not executed"> # </span><span class="branchNoExec" title="Branch 49 was not executed"> # </span>][<span class="branchNoExec" title="Branch 50 was not executed"> # </span><span class="branchNoExec" title="Branch 51 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 52 was not executed"> # </span><span class="branchNoExec" title="Branch 53 was not executed"> # </span>][<span class="branchNoExec" title="Branch 54 was not executed"> # </span><span class="branchNoExec" title="Branch 55 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 56 was not executed"> # </span><span class="branchNoExec" title="Branch 57 was not executed"> # </span><span class="branchNoExec" title="Branch 58 was not executed"> # </span><span class="branchNoExec" title="Branch 59 was not executed"> # </span> 
+<span class="lineNum">         </span><span class="branchNoExec" title="Branch 60 was not executed"> # </span><span class="branchNoExec" title="Branch 61 was not executed"> # </span><span class="branchNoExec" title="Branch 62 was not executed"> # </span><span class="branchNoExec" title="Branch 63 was not executed"> # </span><span class="branchNoExec" title="Branch 64 was not executed"> # </span> 
+<span class="lineNum">         </span>      <span class="branchNoExec" title="Branch 65 was not executed"> # </span><span class="branchNoExec" title="Branch 66 was not executed"> # </span><span class="branchNoExec" title="Branch 67 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 70 was not executed"> # </span><span class="branchNoExec" title="Branch 71 was not executed"> # </span><span class="branchNoExec" title="Branch 72 was not executed"> # </span><span class="branchNoExec" title="Branch 73 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 74 was not executed"> # </span><span class="branchNoExec" title="Branch 75 was not executed"> # </span>][<span class="branchNoExec" title="Branch 76 was not executed"> # </span><span class="branchNoExec" title="Branch 77 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 78 was not executed"> # </span><span class="branchNoExec" title="Branch 79 was not executed"> # </span>][<span class="branchNoExec" title="Branch 80 was not executed"> # </span><span class="branchNoExec" title="Branch 81 was not executed"> # </span> 
+<span class="lineNum">         </span><span class="branchNoExec" title="Branch 82 was not executed"> # </span><span class="branchNoExec" title="Branch 83 was not executed"> # </span><span class="branchNoExec" title="Branch 84 was not executed"> # </span><span class="branchNoExec" title="Branch 85 was not executed"> # </span><span class="branchNoExec" title="Branch 86 was not executed"> # </span> 
+<span class="lineNum">         </span>    <span class="branchNoExec" title="Branch 87 was not executed"> # </span>][<span class="branchNoExec" title="Branch 88 was not executed"> # </span><span class="branchNoExec" title="Branch 89 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 90 was not executed"> # </span><span class="branchNoExec" title="Branch 91 was not executed"> # </span>][<span class="branchNoExec" title="Branch 92 was not executed"> # </span><span class="branchNoExec" title="Branch 93 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 94 was not executed"> # </span><span class="branchNoExec" title="Branch 95 was not executed"> # </span>][<span class="branchNoExec" title="Branch 96 was not executed"> # </span><span class="branchNoExec" title="Branch 97 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 98 was not executed"> # </span><span class="branchNoExec" title="Branch 99 was not executed"> # </span>][<span class="branchNoExec" title="Branch 100 was not executed"> # </span><span class="branchNoExec" title="Branch 101 was not executed"> # </span> 
+<span class="lineNum">         </span><span class="branchNoExec" title="Branch 102 was not executed"> # </span><span class="branchNoExec" title="Branch 103 was not executed"> # </span><span class="branchNoExec" title="Branch 104 was not executed"> # </span><span class="branchNoExec" title="Branch 105 was not executed"> # </span><span class="branchNoExec" title="Branch 106 was not executed"> # </span> 
+<span class="lineNum">         </span><span class="branchNoExec" title="Branch 107 was not executed"> # </span><span class="branchNoExec" title="Branch 108 was not executed"> # </span><span class="branchNoExec" title="Branch 109 was not executed"> # </span><span class="branchNoExec" title="Branch 110 was not executed"> # </span><span class="branchNoExec" title="Branch 111 was not executed"> # </span> 
+<span class="lineNum">         </span><span class="branchNoExec" title="Branch 112 was not executed"> # </span><span class="branchNoExec" title="Branch 113 was not executed"> # </span><span class="branchNoExec" title="Branch 114 was not executed"> # </span><span class="branchNoExec" title="Branch 115 was not executed"> # </span><span class="branchNoExec" title="Branch 116 was not executed"> # </span> 
+<span class="lineNum">         </span> <span class="branchNoExec" title="Branch 117 was not executed"> # </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span> 
+<span class="lineNum">         </span>      <span class="branchNoExec" title="Branch 9 was not executed"> # </span><span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoCov" title="Branch 8 was not taken"> - </span><span class="branchCov" title="Branch 9 was taken 21138 times"> + </span><span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 22 was not executed"> # </span><span class="branchNoExec" title="Branch 23 was not executed"> # </span><span class="branchNoExec" title="Branch 24 was not executed"> # </span><span class="branchNoExec" title="Branch 25 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 26 was not executed"> # </span><span class="branchNoExec" title="Branch 27 was not executed"> # </span>][<span class="branchCov" title="Branch 28 was taken 6666 times"> + </span><span class="branchNoCov" title="Branch 29 was not taken"> - </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 30 was not executed"> # </span><span class="branchNoExec" title="Branch 31 was not executed"> # </span><span class="branchNoExec" title="Branch 34 was not executed"> # </span><span class="branchNoExec" title="Branch 35 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 42 was taken 40047 times"> + </span><span class="branchNoCov" title="Branch 43 was not taken"> - </span>][<span class="branchCov" title="Branch 44 was taken 40047 times"> + </span><span class="branchNoCov" title="Branch 45 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 46 was not executed"> # </span><span class="branchNoExec" title="Branch 47 was not executed"> # </span>][<span class="branchNoExec" title="Branch 48 was not executed"> # </span><span class="branchNoExec" title="Branch 49 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 50 was not executed"> # </span><span class="branchNoExec" title="Branch 51 was not executed"> # </span>][<span class="branchNoExec" title="Branch 52 was not executed"> # </span><span class="branchNoExec" title="Branch 53 was not executed"> # </span> 
+<span class="lineNum">         </span><span class="branchNoExec" title="Branch 56 was not executed"> # </span><span class="branchNoExec" title="Branch 57 was not executed"> # </span><span class="branchNoExec" title="Branch 58 was not executed"> # </span><span class="branchNoExec" title="Branch 59 was not executed"> # </span><span class="branchNoExec" title="Branch 60 was not executed"> # </span> 
+<span class="lineNum">         </span>            <span class="branchNoExec" title="Branch 61 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchCov" title="Branch 62 was taken 40047 times"> + </span><span class="branchNoCov" title="Branch 63 was not taken"> - </span><span class="branchNoExec" title="Branch 64 was not executed"> # </span><span class="branchNoExec" title="Branch 65 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 20 was not executed"> # </span><span class="branchNoExec" title="Branch 21 was not executed"> # </span>][<span class="branchNoExec" title="Branch 24 was not executed"> # </span><span class="branchNoExec" title="Branch 25 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 36 was not executed"> # </span><span class="branchNoExec" title="Branch 37 was not executed"> # </span><span class="branchNoExec" title="Branch 38 was not executed"> # </span><span class="branchNoExec" title="Branch 39 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 40 was not executed"> # </span><span class="branchNoExec" title="Branch 41 was not executed"> # </span>][<span class="branchNoExec" title="Branch 44 was not executed"> # </span><span class="branchNoExec" title="Branch 45 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 48 was not executed"> # </span><span class="branchNoExec" title="Branch 49 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 52 was not executed"> # </span><span class="branchNoExec" title="Branch 53 was not executed"> # </span><span class="branchNoExec" title="Branch 54 was not executed"> # </span><span class="branchNoExec" title="Branch 55 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 56 was not executed"> # </span><span class="branchNoExec" title="Branch 57 was not executed"> # </span><span class="branchNoExec" title="Branch 58 was not executed"> # </span><span class="branchNoExec" title="Branch 59 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 14 was not executed"> # </span><span class="branchNoExec" title="Branch 15 was not executed"> # </span>][<span class="branchNoExec" title="Branch 22 was not executed"> # </span><span class="branchNoExec" title="Branch 23 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 26 was not executed"> # </span><span class="branchNoExec" title="Branch 27 was not executed"> # </span><span class="branchNoExec" title="Branch 28 was not executed"> # </span><span class="branchNoExec" title="Branch 29 was not executed"> # </span> 
+<span class="lineNum">         </span> <span class="branchNoExec" title="Branch 30 was not executed"> # </span><span class="branchNoExec" title="Branch 31 was not executed"> # </span>][<span class="branchNoExec" title="Branch 32 was not executed"> # </span><span class="branchNoExec" title="Branch 33 was not executed"> # </span> 
+<span class="lineNum">         </span>   <span class="branchNoExec" title="Branch 34 was not executed"> # </span><span class="branchNoExec" title="Branch 35 was not executed"> # </span><span class="branchNoExec" title="Branch 36 was not executed"> # </span><span class="branchNoExec" title="Branch 37 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 44 was not executed"> # </span><span class="branchNoExec" title="Branch 45 was not executed"> # </span><span class="branchNoExec" title="Branch 46 was not executed"> # </span><span class="branchNoExec" title="Branch 47 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 48 was not executed"> # </span><span class="branchNoExec" title="Branch 49 was not executed"> # </span>][<span class="branchNoExec" title="Branch 50 was not executed"> # </span><span class="branchNoExec" title="Branch 51 was not executed"> # </span> 
+<span class="lineNum">         </span><span class="branchNoExec" title="Branch 52 was not executed"> # </span><span class="branchNoExec" title="Branch 53 was not executed"> # </span><span class="branchNoExec" title="Branch 54 was not executed"> # </span><span class="branchNoExec" title="Branch 55 was not executed"> # </span><span class="branchNoExec" title="Branch 56 was not executed"> # </span> 
+<span class="lineNum">         </span>      <span class="branchNoExec" title="Branch 57 was not executed"> # </span><span class="branchNoExec" title="Branch 58 was not executed"> # </span><span class="branchNoExec" title="Branch 59 was not executed"> # </span>]
+<span class="lineNum">     462 </span>                :<span class="lineCov">     150907 :             free(_union.indirect);</span>
+<span class="lineNum">     463 </span>                :            :             _union.indirect = nullptr;
+<span class="lineNum">     464 </span>                :            :         }
+<a name="465"><span class="lineNum">     465 </span>                :            :     }</a>
+<span class="lineNum">     466 </span>                :            : 
+<span class="lineNum">     467 </span>                :<span class="lineCov">       3381 :     bool operator==(const prevector&lt;N, T, Size, Diff&gt;&amp; other) const {</span>
+<span class="lineNum">     468 </span>        [<span class="branchCov" title="Branch 0 was taken 3381 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       3381 :         if (other.size() != size()) {</span>
+<span class="lineNum">     469 </span>                :            :             return false;
+<span class="lineNum">     470 </span>                :            :         }
+<span class="lineNum">     471 </span>                :<span class="lineCov">       3381 :         const_iterator b1 = begin();</span>
+<span class="lineNum">     472 </span>                :<span class="lineCov">       3381 :         const_iterator b2 = other.begin();</span>
+<span class="lineNum">     473 </span>                :<span class="lineCov">       3381 :         const_iterator e1 = end();</span>
+<span class="lineNum">     474 </span>        [<span class="branchCov" title="Branch 0 was taken 5049 times"> + </span><span class="branchCov" title="Branch 1 was taken 3381 times"> + </span>]:<span class="lineCov">       8430 :         while (b1 != e1) {</span>
+<span class="lineNum">     475 </span>        [<span class="branchCov" title="Branch 0 was taken 5049 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">       5049 :             if ((*b1) != (*b2)) {</span>
+<span class="lineNum">     476 </span>                :            :                 return false;
+<span class="lineNum">     477 </span>                :            :             }
+<span class="lineNum">     478 </span>                :<span class="lineCov">       5049 :             ++b1;</span>
+<span class="lineNum">     479 </span>                :            :             ++b2;
+<span class="lineNum">     480 </span>                :            :         }
+<span class="lineNum">     481 </span>                :            :         return true;
+<span class="lineNum">     482 </span>                :            :     }
+<span class="lineNum">     483 </span>                :            : 
+<span class="lineNum">     484 </span>                :            :     bool operator!=(const prevector&lt;N, T, Size, Diff&gt;&amp; other) const {
+<span class="lineNum">     485 </span>                :<span class="lineNoCov">          0 :         return !(*this == other);</span>
+<a name="486"><span class="lineNum">     486 </span>                :            :     }</a>
+<span class="lineNum">     487 </span>                :            : 
+<span class="lineNum">     488 </span>                :<span class="lineNoCov">          0 :     bool operator&lt;(const prevector&lt;N, T, Size, Diff&gt;&amp; other) const {</span>
+<span class="lineNum">     489 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (size() &lt; other.size()) {</span>
+<span class="lineNum">     490 </span>                :            :             return true;
+<span class="lineNum">     491 </span>                :            :         }
+<span class="lineNum">     492 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (size() &gt; other.size()) {</span>
+<span class="lineNum">     493 </span>                :            :             return false;
+<span class="lineNum">     494 </span>                :            :         }
+<span class="lineNum">     495 </span>                :<span class="lineNoCov">          0 :         const_iterator b1 = begin();</span>
+<span class="lineNum">     496 </span>                :<span class="lineNoCov">          0 :         const_iterator b2 = other.begin();</span>
+<span class="lineNum">     497 </span>                :<span class="lineNoCov">          0 :         const_iterator e1 = end();</span>
+<span class="lineNum">     498 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         while (b1 != e1) {</span>
+<span class="lineNum">     499 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :             if ((*b1) &lt; (*b2)) {</span>
+<span class="lineNum">     500 </span>                :            :                 return true;
+<span class="lineNum">     501 </span>                :            :             }
+<span class="lineNum">     502 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :             if ((*b2) &lt; (*b1)) {</span>
+<span class="lineNum">     503 </span>                :            :                 return false;
+<span class="lineNum">     504 </span>                :            :             }
+<span class="lineNum">     505 </span>                :<span class="lineNoCov">          0 :             ++b1;</span>
+<span class="lineNum">     506 </span>                :            :             ++b2;
+<span class="lineNum">     507 </span>                :            :         }
+<span class="lineNum">     508 </span>                :            :         return false;
+<span class="lineNum">     509 </span>                :            :     }
+<span class="lineNum">     510 </span>                :            : 
+<span class="lineNum">     511 </span>                :            :     size_t allocated_memory() const {
+<span class="lineNum">     512 </span>[<span class="branchCov" title="Branch 0 was taken 47 times"> + </span><span class="branchCov" title="Branch 1 was taken 3347 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 3348 times"> + </span><span class="branchCov" title="Branch 3 was taken 3379 times"> + </span>]:<span class="lineCov">      97253 :         if (is_direct()) {</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 2 was taken 143 times"> + </span><span class="branchCov" title="Branch 3 was taken 14109 times"> + </span>][<span class="branchCov" title="Branch 4 was taken 60 times"> + </span><span class="branchCov" title="Branch 5 was taken 29 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 6 was taken 8 times"> + </span><span class="branchCov" title="Branch 7 was taken 3342 times"> + </span>][<span class="branchCov" title="Branch 8 was taken 29 times"> + </span><span class="branchCov" title="Branch 9 was taken 60 times"> + </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 10 was taken 95 times"> + </span><span class="branchCov" title="Branch 11 was taken 27440 times"> + </span>][<span class="branchNoExec" title="Branch 12 was not executed"> # </span><span class="branchNoExec" title="Branch 13 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 14 was taken 207 times"> + </span><span class="branchCov" title="Branch 15 was taken 34883 times"> + </span>][<span class="branchCov" title="Branch 16 was taken 81 times"> + </span><span class="branchCov" title="Branch 17 was taken 6675 times"> + </span>]
+<span class="lineNum">     513 </span>                :            :             return 0;
+<span class="lineNum">     514 </span>                :            :         } else {
+<span class="lineNum">     515 </span>                :<span class="lineCov">       4018 :             return ((size_t)(sizeof(T))) * _union.capacity;</span>
+<span class="lineNum">     516 </span>                :            :         }
+<span class="lineNum">     517 </span>                :            :     }
+<span class="lineNum">     518 </span>                :            : 
+<span class="lineNum">     519 </span>                :            :     value_type* data() {
+<span class="lineNum">     520 </span>                :<span class="lineCov">      59743 :         return item_ptr(0);</span>
+<span class="lineNum">     521 </span>                :            :     }
+<span class="lineNum">     522 </span>                :            : 
+<span class="lineNum">     523 </span>                :            :     const value_type* data() const {
+<span class="lineNum">     524 </span>                :<span class="lineCov">     329504 :         return item_ptr(0);</span>
+<span class="lineNum">     525 </span>                :            :     }
+<span class="lineNum">     526 </span>                :            : };
+<span class="lineNum">     527 </span>                :            : #pragma pack(pop)
+<span class="lineNum">     528 </span>                :            : 
+<span class="lineNum">     529 </span>                :            : #endif // BITCOIN_PREVECTOR_H
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

@@ -1,0 +1,341 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/rpc/client.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../../index.html">top level</a> - <a href="index.html">src/rpc</a> - client.cpp<span style="font-size: 80%;"> (source / <a href="client.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">44</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2018-09-20 03:23:27</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">3</td>
+            <td class="headerCovTableEntryLo">0.0 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntry">0</td>
+            <td class="headerCovTableEntryHi">-</td>
+          </tr>
+          <tr><td><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2010 Satoshi Nakamoto</a>
+<span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers
+<span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       5 </span>                :            : 
+<span class="lineNum">       6 </span>                :            : #include &lt;rpc/client.h&gt;
+<span class="lineNum">       7 </span>                :            : #include &lt;rpc/protocol.h&gt;
+<span class="lineNum">       8 </span>                :            : #include &lt;util.h&gt;
+<span class="lineNum">       9 </span>                :            : 
+<span class="lineNum">      10 </span>                :            : #include &lt;set&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;stdint.h&gt;
+<span class="lineNum">      12 </span>                :            : 
+<span class="lineNum">      13 </span>                :<span class="lineNoCov">          0 : class CRPCConvertParam</span>
+<span class="lineNum">      14 </span>                :            : {
+<span class="lineNum">      15 </span>                :            : public:
+<span class="lineNum">      16 </span>                :            :     std::string methodName; //!&lt; method whose params want conversion
+<span class="lineNum">      17 </span>                :            :     int paramIdx;           //!&lt; 0-based idx of param to convert
+<span class="lineNum">      18 </span>                :            :     std::string paramName;  //!&lt; parameter name
+<span class="lineNum">      19 </span>                :            : };
+<span class="lineNum">      20 </span>                :            : 
+<span class="lineNum">      21 </span>                :            : // clang-format off
+<span class="lineNum">      22 </span>                :            : /**
+<span class="lineNum">      23 </span>                :            :  * Specify a (method, idx, name) here if the argument is a non-string RPC
+<span class="lineNum">      24 </span>                :            :  * argument and needs to be converted from JSON.
+<span class="lineNum">      25 </span>                :            :  *
+<a name="26"><span class="lineNum">      26 </span>                :            :  * @note Parameter indexes start from 0.</a>
+<span class="lineNum">      27 </span>                :            :  */
+<span class="lineNum">      28 </span>                :<span class="lineNoCov">          0 : static const CRPCConvertParam vRPCConvertParams[] =</span>
+<span class="lineNum">      29 </span>                :            : {
+<span class="lineNum">      30 </span>                :            :     { &quot;setmocktime&quot;, 0, &quot;timestamp&quot; },
+<span class="lineNum">      31 </span>                :            :     { &quot;generate&quot;, 0, &quot;nblocks&quot; },
+<span class="lineNum">      32 </span>                :            :     { &quot;generate&quot;, 1, &quot;maxtries&quot; },
+<span class="lineNum">      33 </span>                :            :     { &quot;generatetoaddress&quot;, 0, &quot;nblocks&quot; },
+<span class="lineNum">      34 </span>                :            :     { &quot;generatetoaddress&quot;, 2, &quot;maxtries&quot; },
+<span class="lineNum">      35 </span>                :            :     { &quot;getnetworkhashps&quot;, 0, &quot;nblocks&quot; },
+<span class="lineNum">      36 </span>                :            :     { &quot;getnetworkhashps&quot;, 1, &quot;height&quot; },
+<span class="lineNum">      37 </span>                :            :     { &quot;sendtoaddress&quot;, 1, &quot;amount&quot; },
+<span class="lineNum">      38 </span>                :            :     { &quot;sendtoaddress&quot;, 4, &quot;subtractfeefromamount&quot; },
+<span class="lineNum">      39 </span>                :            :     { &quot;sendtoaddress&quot;, 5 , &quot;replaceable&quot; },
+<span class="lineNum">      40 </span>                :            :     { &quot;sendtoaddress&quot;, 6 , &quot;conf_target&quot; },
+<span class="lineNum">      41 </span>                :            :     { &quot;settxfee&quot;, 0, &quot;amount&quot; },
+<span class="lineNum">      42 </span>                :            :     { &quot;sethdseed&quot;, 0, &quot;newkeypool&quot; },
+<span class="lineNum">      43 </span>                :            :     { &quot;getreceivedbyaddress&quot;, 1, &quot;minconf&quot; },
+<span class="lineNum">      44 </span>                :            :     { &quot;getreceivedbylabel&quot;, 1, &quot;minconf&quot; },
+<span class="lineNum">      45 </span>                :            :     { &quot;listreceivedbyaddress&quot;, 0, &quot;minconf&quot; },
+<span class="lineNum">      46 </span>                :            :     { &quot;listreceivedbyaddress&quot;, 1, &quot;include_empty&quot; },
+<span class="lineNum">      47 </span>                :            :     { &quot;listreceivedbyaddress&quot;, 2, &quot;include_watchonly&quot; },
+<span class="lineNum">      48 </span>                :            :     { &quot;listreceivedbyaddress&quot;, 3, &quot;address_filter&quot; },
+<span class="lineNum">      49 </span>                :            :     { &quot;listreceivedbylabel&quot;, 0, &quot;minconf&quot; },
+<span class="lineNum">      50 </span>                :            :     { &quot;listreceivedbylabel&quot;, 1, &quot;include_empty&quot; },
+<span class="lineNum">      51 </span>                :            :     { &quot;listreceivedbylabel&quot;, 2, &quot;include_watchonly&quot; },
+<span class="lineNum">      52 </span>                :            :     { &quot;getbalance&quot;, 1, &quot;minconf&quot; },
+<span class="lineNum">      53 </span>                :            :     { &quot;getbalance&quot;, 2, &quot;include_watchonly&quot; },
+<span class="lineNum">      54 </span>                :            :     { &quot;getblockhash&quot;, 0, &quot;height&quot; },
+<span class="lineNum">      55 </span>                :            :     { &quot;waitforblockheight&quot;, 0, &quot;height&quot; },
+<span class="lineNum">      56 </span>                :            :     { &quot;waitforblockheight&quot;, 1, &quot;timeout&quot; },
+<span class="lineNum">      57 </span>                :            :     { &quot;waitforblock&quot;, 1, &quot;timeout&quot; },
+<span class="lineNum">      58 </span>                :            :     { &quot;waitfornewblock&quot;, 0, &quot;timeout&quot; },
+<span class="lineNum">      59 </span>                :            :     { &quot;listtransactions&quot;, 1, &quot;count&quot; },
+<span class="lineNum">      60 </span>                :            :     { &quot;listtransactions&quot;, 2, &quot;skip&quot; },
+<span class="lineNum">      61 </span>                :            :     { &quot;listtransactions&quot;, 3, &quot;include_watchonly&quot; },
+<span class="lineNum">      62 </span>                :            :     { &quot;walletpassphrase&quot;, 1, &quot;timeout&quot; },
+<span class="lineNum">      63 </span>                :            :     { &quot;getblocktemplate&quot;, 0, &quot;template_request&quot; },
+<span class="lineNum">      64 </span>                :            :     { &quot;listsinceblock&quot;, 1, &quot;target_confirmations&quot; },
+<span class="lineNum">      65 </span>                :            :     { &quot;listsinceblock&quot;, 2, &quot;include_watchonly&quot; },
+<span class="lineNum">      66 </span>                :            :     { &quot;listsinceblock&quot;, 3, &quot;include_removed&quot; },
+<span class="lineNum">      67 </span>                :            :     { &quot;sendmany&quot;, 1, &quot;amounts&quot; },
+<span class="lineNum">      68 </span>                :            :     { &quot;sendmany&quot;, 2, &quot;minconf&quot; },
+<span class="lineNum">      69 </span>                :            :     { &quot;sendmany&quot;, 4, &quot;subtractfeefrom&quot; },
+<span class="lineNum">      70 </span>                :            :     { &quot;sendmany&quot;, 5 , &quot;replaceable&quot; },
+<span class="lineNum">      71 </span>                :            :     { &quot;sendmany&quot;, 6 , &quot;conf_target&quot; },
+<span class="lineNum">      72 </span>                :            :     { &quot;scantxoutset&quot;, 1, &quot;scanobjects&quot; },
+<span class="lineNum">      73 </span>                :            :     { &quot;addmultisigaddress&quot;, 0, &quot;nrequired&quot; },
+<span class="lineNum">      74 </span>                :            :     { &quot;addmultisigaddress&quot;, 1, &quot;keys&quot; },
+<span class="lineNum">      75 </span>                :            :     { &quot;createmultisig&quot;, 0, &quot;nrequired&quot; },
+<span class="lineNum">      76 </span>                :            :     { &quot;createmultisig&quot;, 1, &quot;keys&quot; },
+<span class="lineNum">      77 </span>                :            :     { &quot;listunspent&quot;, 0, &quot;minconf&quot; },
+<span class="lineNum">      78 </span>                :            :     { &quot;listunspent&quot;, 1, &quot;maxconf&quot; },
+<span class="lineNum">      79 </span>                :            :     { &quot;listunspent&quot;, 2, &quot;addresses&quot; },
+<span class="lineNum">      80 </span>                :            :     { &quot;listunspent&quot;, 3, &quot;include_unsafe&quot; },
+<span class="lineNum">      81 </span>                :            :     { &quot;listunspent&quot;, 4, &quot;query_options&quot; },
+<span class="lineNum">      82 </span>                :            :     { &quot;getblock&quot;, 1, &quot;verbosity&quot; },
+<span class="lineNum">      83 </span>                :            :     { &quot;getblock&quot;, 1, &quot;verbose&quot; },
+<span class="lineNum">      84 </span>                :            :     { &quot;getblockheader&quot;, 1, &quot;verbose&quot; },
+<span class="lineNum">      85 </span>                :            :     { &quot;getchaintxstats&quot;, 0, &quot;nblocks&quot; },
+<span class="lineNum">      86 </span>                :            :     { &quot;gettransaction&quot;, 1, &quot;include_watchonly&quot; },
+<span class="lineNum">      87 </span>                :            :     { &quot;getrawtransaction&quot;, 1, &quot;verbose&quot; },
+<span class="lineNum">      88 </span>                :            :     { &quot;createrawtransaction&quot;, 0, &quot;inputs&quot; },
+<span class="lineNum">      89 </span>                :            :     { &quot;createrawtransaction&quot;, 1, &quot;outputs&quot; },
+<span class="lineNum">      90 </span>                :            :     { &quot;createrawtransaction&quot;, 2, &quot;locktime&quot; },
+<span class="lineNum">      91 </span>                :            :     { &quot;createrawtransaction&quot;, 3, &quot;replaceable&quot; },
+<span class="lineNum">      92 </span>                :            :     { &quot;decoderawtransaction&quot;, 1, &quot;iswitness&quot; },
+<span class="lineNum">      93 </span>                :            :     { &quot;signrawtransaction&quot;, 1, &quot;prevtxs&quot; },
+<span class="lineNum">      94 </span>                :            :     { &quot;signrawtransaction&quot;, 2, &quot;privkeys&quot; },
+<span class="lineNum">      95 </span>                :            :     { &quot;signrawtransactionwithkey&quot;, 1, &quot;privkeys&quot; },
+<span class="lineNum">      96 </span>                :            :     { &quot;signrawtransactionwithkey&quot;, 2, &quot;prevtxs&quot; },
+<span class="lineNum">      97 </span>                :            :     { &quot;signrawtransactionwithwallet&quot;, 1, &quot;prevtxs&quot; },
+<span class="lineNum">      98 </span>                :            :     { &quot;sendrawtransaction&quot;, 1, &quot;allowhighfees&quot; },
+<span class="lineNum">      99 </span>                :            :     { &quot;testmempoolaccept&quot;, 0, &quot;rawtxs&quot; },
+<span class="lineNum">     100 </span>                :            :     { &quot;testmempoolaccept&quot;, 1, &quot;allowhighfees&quot; },
+<span class="lineNum">     101 </span>                :            :     { &quot;combinerawtransaction&quot;, 0, &quot;txs&quot; },
+<span class="lineNum">     102 </span>                :            :     { &quot;fundrawtransaction&quot;, 1, &quot;options&quot; },
+<span class="lineNum">     103 </span>                :            :     { &quot;fundrawtransaction&quot;, 2, &quot;iswitness&quot; },
+<span class="lineNum">     104 </span>                :            :     { &quot;walletcreatefundedpsbt&quot;, 0, &quot;inputs&quot; },
+<span class="lineNum">     105 </span>                :            :     { &quot;walletcreatefundedpsbt&quot;, 1, &quot;outputs&quot; },
+<span class="lineNum">     106 </span>                :            :     { &quot;walletcreatefundedpsbt&quot;, 2, &quot;locktime&quot; },
+<span class="lineNum">     107 </span>                :            :     { &quot;walletcreatefundedpsbt&quot;, 3, &quot;options&quot; },
+<span class="lineNum">     108 </span>                :            :     { &quot;walletcreatefundedpsbt&quot;, 4, &quot;bip32derivs&quot; },
+<span class="lineNum">     109 </span>                :            :     { &quot;walletprocesspsbt&quot;, 1, &quot;sign&quot; },
+<span class="lineNum">     110 </span>                :            :     { &quot;walletprocesspsbt&quot;, 3, &quot;bip32derivs&quot; },
+<span class="lineNum">     111 </span>                :            :     { &quot;createpsbt&quot;, 0, &quot;inputs&quot; },
+<span class="lineNum">     112 </span>                :            :     { &quot;createpsbt&quot;, 1, &quot;outputs&quot; },
+<span class="lineNum">     113 </span>                :            :     { &quot;createpsbt&quot;, 2, &quot;locktime&quot; },
+<span class="lineNum">     114 </span>                :            :     { &quot;createpsbt&quot;, 3, &quot;replaceable&quot; },
+<span class="lineNum">     115 </span>                :            :     { &quot;combinepsbt&quot;, 0, &quot;txs&quot;},
+<span class="lineNum">     116 </span>                :            :     { &quot;finalizepsbt&quot;, 1, &quot;extract&quot;},
+<span class="lineNum">     117 </span>                :            :     { &quot;converttopsbt&quot;, 1, &quot;permitsigdata&quot;},
+<span class="lineNum">     118 </span>                :            :     { &quot;converttopsbt&quot;, 2, &quot;iswitness&quot;},
+<span class="lineNum">     119 </span>                :            :     { &quot;gettxout&quot;, 1, &quot;n&quot; },
+<span class="lineNum">     120 </span>                :            :     { &quot;gettxout&quot;, 2, &quot;include_mempool&quot; },
+<span class="lineNum">     121 </span>                :            :     { &quot;gettxoutproof&quot;, 0, &quot;txids&quot; },
+<span class="lineNum">     122 </span>                :            :     { &quot;lockunspent&quot;, 0, &quot;unlock&quot; },
+<span class="lineNum">     123 </span>                :            :     { &quot;lockunspent&quot;, 1, &quot;transactions&quot; },
+<span class="lineNum">     124 </span>                :            :     { &quot;importprivkey&quot;, 2, &quot;rescan&quot; },
+<span class="lineNum">     125 </span>                :            :     { &quot;importaddress&quot;, 2, &quot;rescan&quot; },
+<span class="lineNum">     126 </span>                :            :     { &quot;importaddress&quot;, 3, &quot;p2sh&quot; },
+<span class="lineNum">     127 </span>                :            :     { &quot;importpubkey&quot;, 2, &quot;rescan&quot; },
+<span class="lineNum">     128 </span>                :            :     { &quot;importmulti&quot;, 0, &quot;requests&quot; },
+<span class="lineNum">     129 </span>                :            :     { &quot;importmulti&quot;, 1, &quot;options&quot; },
+<span class="lineNum">     130 </span>                :            :     { &quot;verifychain&quot;, 0, &quot;checklevel&quot; },
+<span class="lineNum">     131 </span>                :            :     { &quot;verifychain&quot;, 1, &quot;nblocks&quot; },
+<span class="lineNum">     132 </span>                :            :     { &quot;getblockstats&quot;, 0, &quot;hash_or_height&quot; },
+<span class="lineNum">     133 </span>                :            :     { &quot;getblockstats&quot;, 1, &quot;stats&quot; },
+<span class="lineNum">     134 </span>                :            :     { &quot;pruneblockchain&quot;, 0, &quot;height&quot; },
+<span class="lineNum">     135 </span>                :            :     { &quot;keypoolrefill&quot;, 0, &quot;newsize&quot; },
+<span class="lineNum">     136 </span>                :            :     { &quot;getrawmempool&quot;, 0, &quot;verbose&quot; },
+<span class="lineNum">     137 </span>                :            :     { &quot;estimatesmartfee&quot;, 0, &quot;conf_target&quot; },
+<span class="lineNum">     138 </span>                :            :     { &quot;estimaterawfee&quot;, 0, &quot;conf_target&quot; },
+<span class="lineNum">     139 </span>                :            :     { &quot;estimaterawfee&quot;, 1, &quot;threshold&quot; },
+<span class="lineNum">     140 </span>                :            :     { &quot;prioritisetransaction&quot;, 1, &quot;dummy&quot; },
+<span class="lineNum">     141 </span>                :            :     { &quot;prioritisetransaction&quot;, 2, &quot;fee_delta&quot; },
+<span class="lineNum">     142 </span>                :            :     { &quot;setban&quot;, 2, &quot;bantime&quot; },
+<span class="lineNum">     143 </span>                :            :     { &quot;setban&quot;, 3, &quot;absolute&quot; },
+<span class="lineNum">     144 </span>                :            :     { &quot;setnetworkactive&quot;, 0, &quot;state&quot; },
+<span class="lineNum">     145 </span>                :            :     { &quot;getmempoolancestors&quot;, 1, &quot;verbose&quot; },
+<span class="lineNum">     146 </span>                :            :     { &quot;getmempooldescendants&quot;, 1, &quot;verbose&quot; },
+<span class="lineNum">     147 </span>                :            :     { &quot;bumpfee&quot;, 1, &quot;options&quot; },
+<span class="lineNum">     148 </span>                :            :     { &quot;logging&quot;, 0, &quot;include&quot; },
+<span class="lineNum">     149 </span>                :            :     { &quot;logging&quot;, 1, &quot;exclude&quot; },
+<span class="lineNum">     150 </span>                :            :     { &quot;disconnectnode&quot;, 1, &quot;nodeid&quot; },
+<span class="lineNum">     151 </span>                :            :     { &quot;addwitnessaddress&quot;, 1, &quot;p2sh&quot; },
+<span class="lineNum">     152 </span>                :            :     // Echo with conversion (For testing only)
+<span class="lineNum">     153 </span>                :            :     { &quot;echojson&quot;, 0, &quot;arg0&quot; },
+<span class="lineNum">     154 </span>                :            :     { &quot;echojson&quot;, 1, &quot;arg1&quot; },
+<span class="lineNum">     155 </span>                :            :     { &quot;echojson&quot;, 2, &quot;arg2&quot; },
+<span class="lineNum">     156 </span>                :            :     { &quot;echojson&quot;, 3, &quot;arg3&quot; },
+<span class="lineNum">     157 </span>                :            :     { &quot;echojson&quot;, 4, &quot;arg4&quot; },
+<span class="lineNum">     158 </span>                :            :     { &quot;echojson&quot;, 5, &quot;arg5&quot; },
+<span class="lineNum">     159 </span>                :            :     { &quot;echojson&quot;, 6, &quot;arg6&quot; },
+<span class="lineNum">     160 </span>                :            :     { &quot;echojson&quot;, 7, &quot;arg7&quot; },
+<span class="lineNum">     161 </span>                :            :     { &quot;echojson&quot;, 8, &quot;arg8&quot; },
+<span class="lineNum">     162 </span>                :            :     { &quot;echojson&quot;, 9, &quot;arg9&quot; },
+<span class="lineNum">     163 </span>                :            :     { &quot;rescanblockchain&quot;, 0, &quot;start_height&quot;},
+<span class="lineNum">     164 </span>                :            :     { &quot;rescanblockchain&quot;, 1, &quot;stop_height&quot;},
+<span class="lineNum">     165 </span>                :            :     { &quot;createwallet&quot;, 1, &quot;disable_private_keys&quot;},
+<span class="lineNum">     166 </span>                :            :     { &quot;getnodeaddresses&quot;, 0, &quot;count&quot;},
+<span class="lineNum">     167 </span>                :<span class="lineNoCov">          0 : };</span>
+<span class="lineNum">     168 </span>                :            : // clang-format on
+<span class="lineNum">     169 </span>                :            : 
+<span class="lineNum">     170 </span>                :<span class="lineNoCov">          0 : class CRPCConvertTable</span>
+<span class="lineNum">     171 </span>                :            : {
+<span class="lineNum">     172 </span>                :            : private:
+<span class="lineNum">     173 </span>                :            :     std::set&lt;std::pair&lt;std::string, int&gt;&gt; members;
+<span class="lineNum">     174 </span>                :            :     std::set&lt;std::pair&lt;std::string, std::string&gt;&gt; membersByName;
+<span class="lineNum">     175 </span>                :            : 
+<span class="lineNum">     176 </span>                :            : public:
+<span class="lineNum">     177 </span>                :            :     CRPCConvertTable();
+<span class="lineNum">     178 </span>                :            : 
+<span class="lineNum">     179 </span>                :<span class="lineNoCov">          0 :     bool convert(const std::string&amp; method, int idx) {</span>
+<a name="180"><span class="lineNum">     180 </span>                :<span class="lineNoCov">          0 :         return (members.count(std::make_pair(method, idx)) &gt; 0);</span></a>
+<span class="lineNum">     181 </span>                :            :     }
+<span class="lineNum">     182 </span>                :<span class="lineNoCov">          0 :     bool convert(const std::string&amp; method, const std::string&amp; name) {</span>
+<span class="lineNum">     183 </span>                :<span class="lineNoCov">          0 :         return (membersByName.count(std::make_pair(method, name)) &gt; 0);</span>
+<span class="lineNum">     184 </span>                :            :     }
+<span class="lineNum">     185 </span>                :            : };
+<span class="lineNum">     186 </span>                :            : 
+<span class="lineNum">     187 </span>                :<span class="lineNoCov">          0 : CRPCConvertTable::CRPCConvertTable()</span>
+<span class="lineNum">     188 </span>                :            : {
+<span class="lineNum">     189 </span>                :<span class="lineNoCov">          0 :     const unsigned int n_elem =</span>
+<span class="lineNum">     190 </span>                :            :         (sizeof(vRPCConvertParams) / sizeof(vRPCConvertParams[0]));
+<span class="lineNum">     191 </span>                :            : 
+<span class="lineNum">     192 </span>                :<span class="lineNoCov">          0 :     for (unsigned int i = 0; i &lt; n_elem; i++) {</span>
+<span class="lineNum">     193 </span>                :<span class="lineNoCov">          0 :         members.insert(std::make_pair(vRPCConvertParams[i].methodName,</span>
+<span class="lineNum">     194 </span>                :<span class="lineNoCov">          0 :                                       vRPCConvertParams[i].paramIdx));</span>
+<span class="lineNum">     195 </span>                :<span class="lineNoCov">          0 :         membersByName.insert(std::make_pair(vRPCConvertParams[i].methodName,</span>
+<span class="lineNum">     196 </span>                :<span class="lineNoCov">          0 :                                             vRPCConvertParams[i].paramName));</span>
+<span class="lineNum">     197 </span>                :            :     }
+<span class="lineNum">     198 </span>                :<span class="lineNoCov">          0 : }</span>
+<span class="lineNum">     199 </span>                :            : 
+<span class="lineNum">     200 </span>                :<span class="lineNoCov">          0 : static CRPCConvertTable rpcCvtTable;</span>
+<span class="lineNum">     201 </span>                :            : 
+<span class="lineNum">     202 </span>                :            : /** Non-RFC4627 JSON parser, accepts internal values (such as numbers, true, false, null)
+<span class="lineNum">     203 </span>                :            :  * as well as objects and arrays.
+<span class="lineNum">     204 </span>                :            :  */
+<span class="lineNum">     205 </span>                :<span class="lineNoCov">          0 : UniValue ParseNonRFCJSONValue(const std::string&amp; strVal)</span>
+<span class="lineNum">     206 </span>                :            : {
+<span class="lineNum">     207 </span>                :<span class="lineNoCov">          0 :     UniValue jVal;</span>
+<span class="lineNum">     208 </span>                :<span class="lineNoCov">          0 :     if (!jVal.read(std::string(&quot;[&quot;)+strVal+std::string(&quot;]&quot;)) ||</span>
+<span class="lineNum">     209 </span>                :<span class="lineNoCov">          0 :         !jVal.isArray() || jVal.size()!=1)</span>
+<span class="lineNum">     210 </span>                :<span class="lineNoCov">          0 :         throw std::runtime_error(std::string(&quot;Error parsing JSON:&quot;)+strVal);</span>
+<span class="lineNum">     211 </span>                :<span class="lineNoCov">          0 :     return jVal[0];</span>
+<span class="lineNum">     212 </span>                :            : }
+<span class="lineNum">     213 </span>                :            : 
+<span class="lineNum">     214 </span>                :<span class="lineNoCov">          0 : UniValue RPCConvertValues(const std::string &amp;strMethod, const std::vector&lt;std::string&gt; &amp;strParams)</span>
+<span class="lineNum">     215 </span>                :            : {
+<span class="lineNum">     216 </span>                :<span class="lineNoCov">          0 :     UniValue params(UniValue::VARR);</span>
+<span class="lineNum">     217 </span>                :            : 
+<span class="lineNum">     218 </span>                :<span class="lineNoCov">          0 :     for (unsigned int idx = 0; idx &lt; strParams.size(); idx++) {</span>
+<span class="lineNum">     219 </span>                :<span class="lineNoCov">          0 :         const std::string&amp; strVal = strParams[idx];</span>
+<span class="lineNum">     220 </span>                :            : 
+<span class="lineNum">     221 </span>                :<span class="lineNoCov">          0 :         if (!rpcCvtTable.convert(strMethod, idx)) {</span>
+<span class="lineNum">     222 </span>                :            :             // insert string value directly
+<span class="lineNum">     223 </span>                :<span class="lineNoCov">          0 :             params.push_back(strVal);</span>
+<span class="lineNum">     224 </span>                :            :         } else {
+<span class="lineNum">     225 </span>                :            :             // parse string as JSON, insert bool/number/object/etc. value
+<span class="lineNum">     226 </span>                :<span class="lineNoCov">          0 :             params.push_back(ParseNonRFCJSONValue(strVal));</span>
+<span class="lineNum">     227 </span>                :            :         }
+<span class="lineNum">     228 </span>                :            :     }
+<span class="lineNum">     229 </span>                :            : 
+<span class="lineNum">     230 </span>                :<span class="lineNoCov">          0 :     return params;</span>
+<span class="lineNum">     231 </span>                :            : }
+<span class="lineNum">     232 </span>                :            : 
+<span class="lineNum">     233 </span>                :<span class="lineNoCov">          0 : UniValue RPCConvertNamedValues(const std::string &amp;strMethod, const std::vector&lt;std::string&gt; &amp;strParams)</span>
+<span class="lineNum">     234 </span>                :            : {
+<span class="lineNum">     235 </span>                :<span class="lineNoCov">          0 :     UniValue params(UniValue::VOBJ);</span>
+<span class="lineNum">     236 </span>                :            : 
+<span class="lineNum">     237 </span>                :<span class="lineNoCov">          0 :     for (const std::string &amp;s: strParams) {</span>
+<span class="lineNum">     238 </span>                :<span class="lineNoCov">          0 :         size_t pos = s.find('=');</span>
+<span class="lineNum">     239 </span>                :<span class="lineNoCov">          0 :         if (pos == std::string::npos) {</span>
+<span class="lineNum">     240 </span>                :<span class="lineNoCov">          0 :             throw(std::runtime_error(&quot;No '=' in named argument '&quot;+s+&quot;', this needs to be present for every argument (even if it is empty)&quot;));</span>
+<span class="lineNum">     241 </span>                :            :         }
+<span class="lineNum">     242 </span>                :            : 
+<span class="lineNum">     243 </span>                :<span class="lineNoCov">          0 :         std::string name = s.substr(0, pos);</span>
+<span class="lineNum">     244 </span>                :<span class="lineNoCov">          0 :         std::string value = s.substr(pos+1);</span>
+<span class="lineNum">     245 </span>                :            : 
+<span class="lineNum">     246 </span>                :<span class="lineNoCov">          0 :         if (!rpcCvtTable.convert(strMethod, name)) {</span>
+<span class="lineNum">     247 </span>                :            :             // insert string value directly
+<span class="lineNum">     248 </span>                :<span class="lineNoCov">          0 :             params.pushKV(name, value);</span>
+<span class="lineNum">     249 </span>                :            :         } else {
+<span class="lineNum">     250 </span>                :            :             // parse string as JSON, insert bool/number/object/etc. value
+<span class="lineNum">     251 </span>                :<span class="lineNoCov">          0 :             params.pushKV(name, ParseNonRFCJSONValue(value));</span>
+<span class="lineNum">     252 </span>                :            :         }
+<span class="lineNum">     253 </span>                :            :     }
+<a name="254"><span class="lineNum">     254 </span>                :            : </a>
+<span class="lineNum">     255 </span>                :<span class="lineNoCov">          0 :     return params;</span>
+<span class="lineNum">     256 </span>                :<span class="lineNoCov">          0 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

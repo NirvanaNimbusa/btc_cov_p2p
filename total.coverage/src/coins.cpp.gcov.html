@@ -1,0 +1,344 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/coins.cpp</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - coins.cpp<span style="font-size: 80%;"> (source / <a href="coins.cpp.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">104</td>
+            <td class="headerCovTableEntry">139</td>
+            <td class="headerCovTableEntryLo">74.8 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2018-09-20 03:23:27</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">22</td>
+            <td class="headerCovTableEntry">37</td>
+            <td class="headerCovTableEntryLo">59.5 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">52</td>
+            <td class="headerCovTableEntry">88</td>
+            <td class="headerCovTableEntryLo">59.1 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2012-2018 The Bitcoin Core developers</a>
+<span class="lineNum">       2 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       3 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       4 </span>                :            : 
+<span class="lineNum">       5 </span>                :            : #include &lt;coins.h&gt;
+<span class="lineNum">       6 </span>                :            : 
+<span class="lineNum">       7 </span>                :            : #include &lt;consensus/consensus.h&gt;
+<a name="8"><span class="lineNum">       8 </span>                :            : #include &lt;random.h&gt;</a>
+<a name="9"><span class="lineNum">       9 </span>                :            : </a>
+<a name="10"><span class="lineNum">      10 </span>                :<span class="lineNoCov">          0 : bool CCoinsView::GetCoin(const COutPoint &amp;outpoint, Coin &amp;coin) const { return false; }</span></a>
+<a name="11"><span class="lineNum">      11 </span>                :<span class="lineNoCov">          0 : uint256 CCoinsView::GetBestBlock() const { return uint256(); }</span></a>
+<a name="12"><span class="lineNum">      12 </span>                :<span class="lineNoCov">          0 : std::vector&lt;uint256&gt; CCoinsView::GetHeadBlocks() const { return std::vector&lt;uint256&gt;(); }</span></a>
+<span class="lineNum">      13 </span>                :<span class="lineNoCov">          0 : bool CCoinsView::BatchWrite(CCoinsMap &amp;mapCoins, const uint256 &amp;hashBlock) { return false; }</span>
+<a name="14"><span class="lineNum">      14 </span>                :<span class="lineNoCov">          0 : CCoinsViewCursor *CCoinsView::Cursor() const { return nullptr; }</span></a>
+<span class="lineNum">      15 </span>                :            : 
+<span class="lineNum">      16 </span>                :<span class="lineNoCov">          0 : bool CCoinsView::HaveCoin(const COutPoint &amp;outpoint) const</span>
+<span class="lineNum">      17 </span>                :            : {
+<span class="lineNum">      18 </span>                :<span class="lineNoCov">          0 :     Coin coin;</span>
+<span class="lineNum">      19 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineNoCov">          0 :     return GetCoin(outpoint, coin);</span>
+<a name="20"><span class="lineNum">      20 </span>                :            : }</a>
+<a name="21"><span class="lineNum">      21 </span>                :            : </a>
+<a name="22"><span class="lineNum">      22 </span>                :<span class="lineCov">        339 : CCoinsViewBacked::CCoinsViewBacked(CCoinsView *viewIn) : base(viewIn) { }</span></a>
+<a name="23"><span class="lineNum">      23 </span>                :<span class="lineCov">      70176 : bool CCoinsViewBacked::GetCoin(const COutPoint &amp;outpoint, Coin &amp;coin) const { return base-&gt;GetCoin(outpoint, coin); }</span></a>
+<a name="24"><span class="lineNum">      24 </span>                :<span class="lineNoCov">          0 : bool CCoinsViewBacked::HaveCoin(const COutPoint &amp;outpoint) const { return base-&gt;HaveCoin(outpoint); }</span></a>
+<a name="25"><span class="lineNum">      25 </span>                :<span class="lineCov">          4 : uint256 CCoinsViewBacked::GetBestBlock() const { return base-&gt;GetBestBlock(); }</span></a>
+<a name="26"><span class="lineNum">      26 </span>                :<span class="lineNoCov">          0 : std::vector&lt;uint256&gt; CCoinsViewBacked::GetHeadBlocks() const { return base-&gt;GetHeadBlocks(); }</span></a>
+<a name="27"><span class="lineNum">      27 </span>                :<span class="lineNoCov">          0 : void CCoinsViewBacked::SetBackend(CCoinsView &amp;viewIn) { base = &amp;viewIn; }</span></a>
+<a name="28"><span class="lineNum">      28 </span>                :<span class="lineCov">          4 : bool CCoinsViewBacked::BatchWrite(CCoinsMap &amp;mapCoins, const uint256 &amp;hashBlock) { return base-&gt;BatchWrite(mapCoins, hashBlock); }</span></a>
+<span class="lineNum">      29 </span>                :<span class="lineNoCov">          0 : CCoinsViewCursor *CCoinsViewBacked::Cursor() const { return base-&gt;Cursor(); }</span>
+<a name="30"><span class="lineNum">      30 </span>                :<span class="lineNoCov">          0 : size_t CCoinsViewBacked::EstimateSize() const { return base-&gt;EstimateSize(); }</span></a>
+<span class="lineNum">      31 </span>                :            : 
+<a name="32"><span class="lineNum">      32 </span>                :<span class="lineCov">        676 : SaltedOutpointHasher::SaltedOutpointHasher() : k0(GetRand(std::numeric_limits&lt;uint64_t&gt;::max())), k1(GetRand(std::numeric_limits&lt;uint64_t&gt;::max())) {}</span></a>
+<span class="lineNum">      33 </span>                :            : 
+<a name="34"><span class="lineNum">      34 </span>                :<span class="lineCov">        676 : CCoinsViewCache::CCoinsViewCache(CCoinsView *baseIn) : CCoinsViewBacked(baseIn), cachedCoinsUsage(0) {}</span></a>
+<span class="lineNum">      35 </span>                :            : 
+<span class="lineNum">      36 </span>                :<span class="lineCov">       3993 : size_t CCoinsViewCache::DynamicMemoryUsage() const {</span>
+<span class="lineNum">      37 </span>                :<span class="lineCov">       7986 :     return memusage::DynamicUsage(cacheCoins) + cachedCoinsUsage;</span>
+<a name="38"><span class="lineNum">      38 </span>                :            : }</a>
+<span class="lineNum">      39 </span>                :            : 
+<span class="lineNum">      40 </span>                :<span class="lineCov">     249468 : CCoinsMap::iterator CCoinsViewCache::FetchCoin(const COutPoint &amp;outpoint) const {</span>
+<span class="lineNum">      41 </span>                :<span class="lineCov">     498936 :     CCoinsMap::iterator it = cacheCoins.find(outpoint);</span>
+<span class="lineNum">      42 </span>        [<span class="branchCov" title="Branch 0 was taken 172504 times"> + </span><span class="branchCov" title="Branch 1 was taken 76964 times"> + </span>]:<span class="lineCov">     249468 :     if (it != cacheCoins.end())</span>
+<span class="lineNum">      43 </span>                :<span class="lineCov">     172504 :         return it;</span>
+<span class="lineNum">      44 </span>                :<span class="lineCov">      76964 :     Coin tmp;</span>
+<span class="lineNum">      45 </span>[<span class="branchCov" title="Branch 1 was taken 76964 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 70208 times"> + </span><span class="branchCov" title="Branch 4 was taken 6756 times"> + </span>]:<span class="lineCov">      76964 :     if (!base-&gt;GetCoin(outpoint, tmp))</span>
+<span class="lineNum">      46 </span>                :<span class="lineCov">      70208 :         return cacheCoins.end();</span>
+<span class="lineNum">      47 </span>                :<span class="lineCov">      27024 :     CCoinsMap::iterator ret = cacheCoins.emplace(std::piecewise_construct, std::forward_as_tuple(outpoint), std::forward_as_tuple(std::move(tmp))).first;</span>
+<span class="lineNum">      48 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 6756 times"> + </span>]:<span class="lineCov">       6756 :     if (ret-&gt;second.coin.IsSpent()) {</span>
+<span class="lineNum">      49 </span>                :            :         // The parent only has an empty entry for this outpoint; we can consider our
+<span class="lineNum">      50 </span>                :            :         // version as fresh.
+<span class="lineNum">      51 </span>                :<span class="lineNoCov">          0 :         ret-&gt;second.flags = CCoinsCacheEntry::FRESH;</span>
+<span class="lineNum">      52 </span>                :            :     }
+<span class="lineNum">      53 </span>                :<span class="lineCov">      13512 :     cachedCoinsUsage += ret-&gt;second.coin.DynamicMemoryUsage();</span>
+<span class="lineNum">      54 </span>                :<span class="lineCov">       6756 :     return ret;</span>
+<a name="55"><span class="lineNum">      55 </span>                :            : }</a>
+<span class="lineNum">      56 </span>                :            : 
+<span class="lineNum">      57 </span>                :<span class="lineCov">      41876 : bool CCoinsViewCache::GetCoin(const COutPoint &amp;outpoint, Coin &amp;coin) const {</span>
+<span class="lineNum">      58 </span>                :<span class="lineCov">      41876 :     CCoinsMap::const_iterator it = FetchCoin(outpoint);</span>
+<span class="lineNum">      59 </span>        [<span class="branchCov" title="Branch 0 was taken 6788 times"> + </span><span class="branchCov" title="Branch 1 was taken 35088 times"> + </span>]:<span class="lineCov">      41876 :     if (it != cacheCoins.end()) {</span>
+<span class="lineNum">      60 </span>                :<span class="lineCov">      13576 :         coin = it-&gt;second.coin;</span>
+<span class="lineNum">      61 </span>                :<span class="lineCov">       6788 :         return !coin.IsSpent();</span>
+<span class="lineNum">      62 </span>                :            :     }
+<span class="lineNum">      63 </span>                :            :     return false;
+<a name="64"><span class="lineNum">      64 </span>                :            : }</a>
+<span class="lineNum">      65 </span>                :            : 
+<span class="lineNum">      66 </span>                :<span class="lineCov">      35098 : void CCoinsViewCache::AddCoin(const COutPoint &amp;outpoint, Coin&amp;&amp; coin, bool possible_overwrite) {</span>
+<span class="lineNum">      67 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 35098 times"> + </span>]:<span class="lineCov">      35098 :     assert(!coin.IsSpent());</span>
+<span class="lineNum">      68 </span>                :<span class="lineCov">      35098 :     if (coin.out.scriptPubKey.IsUnspendable()) return;</span>
+<span class="lineNum">      69 </span>                :<span class="lineCov">      35090 :     CCoinsMap::iterator it;</span>
+<span class="lineNum">      70 </span>                :            :     bool inserted;
+<span class="lineNum">      71 </span>                :<span class="lineCov">     175450 :     std::tie(it, inserted) = cacheCoins.emplace(std::piecewise_construct, std::forward_as_tuple(outpoint), std::tuple&lt;&gt;());</span>
+<span class="lineNum">      72 </span>                :<span class="lineCov">      35090 :     bool fresh = false;</span>
+<span class="lineNum">      73 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 35090 times"> + </span>]:<span class="lineCov">      35090 :     if (!inserted) {</span>
+<span class="lineNum">      74 </span>                :<span class="lineNoCov">          0 :         cachedCoinsUsage -= it-&gt;second.coin.DynamicMemoryUsage();</span>
+<span class="lineNum">      75 </span>                :            :     }
+<span class="lineNum">      76 </span>        [<span class="branchCov" title="Branch 0 was taken 34927 times"> + </span><span class="branchCov" title="Branch 1 was taken 163 times"> + </span>]:<span class="lineCov">      35090 :     if (!possible_overwrite) {</span>
+<span class="lineNum">      77 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 34927 times"> + </span>]:<span class="lineCov">      34927 :         if (!it-&gt;second.coin.IsSpent()) {</span>
+<span class="lineNum">      78 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :             throw std::logic_error(&quot;Adding new coin that replaces non-pruned entry&quot;);</span>
+<span class="lineNum">      79 </span>                :            :         }
+<span class="lineNum">      80 </span>                :<span class="lineCov">      34927 :         fresh = !(it-&gt;second.flags &amp; CCoinsCacheEntry::DIRTY);</span>
+<span class="lineNum">      81 </span>                :            :     }
+<span class="lineNum">      82 </span>                :<span class="lineCov">     105270 :     it-&gt;second.coin = std::move(coin);</span>
+<span class="lineNum">      83 </span>        [<span class="branchCov" title="Branch 0 was taken 163 times"> + </span><span class="branchCov" title="Branch 1 was taken 34927 times"> + </span>]:<span class="lineCov">      35090 :     it-&gt;second.flags |= CCoinsCacheEntry::DIRTY | (fresh ? CCoinsCacheEntry::FRESH : 0);</span>
+<span class="lineNum">      84 </span>                :<span class="lineCov">      35090 :     cachedCoinsUsage += it-&gt;second.coin.DynamicMemoryUsage();</span>
+<a name="85"><span class="lineNum">      85 </span>                :            : }</a>
+<span class="lineNum">      86 </span>                :            : 
+<span class="lineNum">      87 </span>                :<span class="lineCov">      17651 : void AddCoins(CCoinsViewCache&amp; cache, const CTransaction &amp;tx, int nHeight, bool check) {</span>
+<span class="lineNum">      88 </span>                :<span class="lineCov">      17651 :     bool fCoinbase = tx.IsCoinBase();</span>
+<span class="lineNum">      89 </span>                :<span class="lineCov">      17651 :     const uint256&amp; txid = tx.GetHash();</span>
+<span class="lineNum">      90 </span>        [<span class="branchCov" title="Branch 0 was taken 28400 times"> + </span><span class="branchCov" title="Branch 1 was taken 17651 times"> + </span>]:<span class="lineCov">      46051 :     for (size_t i = 0; i &lt; tx.vout.size(); ++i) {</span>
+<span class="lineNum">      91 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 28400 times"> + </span>]:<span class="lineCov">      28400 :         bool overwrite = check ? cache.HaveCoin(COutPoint(txid, i)) : fCoinbase;</span>
+<span class="lineNum">      92 </span>                :            :         // Always set the possible_overwrite flag to AddCoin for coinbase txn, in order to correctly
+<span class="lineNum">      93 </span>                :            :         // deal with the pre-BIP30 occurrences of duplicate coinbase transactions.
+<span class="lineNum">      94 </span>        [<span class="branchCov" title="Branch 1 was taken 28400 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">      28400 :         cache.AddCoin(COutPoint(txid, i), Coin(tx.vout[i], nHeight, fCoinbase), overwrite);</span>
+<span class="lineNum">      95 </span>                :            :     }
+<a name="96"><span class="lineNum">      96 </span>                :<span class="lineCov">      17651 : }</span></a>
+<span class="lineNum">      97 </span>                :            : 
+<span class="lineNum">      98 </span>                :<span class="lineCov">      27535 : bool CCoinsViewCache::SpendCoin(const COutPoint &amp;outpoint, Coin* moveout) {</span>
+<span class="lineNum">      99 </span>                :<span class="lineCov">      27535 :     CCoinsMap::iterator it = FetchCoin(outpoint);</span>
+<span class="lineNum">     100 </span>        [<span class="branchCov" title="Branch 0 was taken 27535 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      27535 :     if (it == cacheCoins.end()) return false;</span>
+<span class="lineNum">     101 </span>                :<span class="lineCov">      55070 :     cachedCoinsUsage -= it-&gt;second.coin.DynamicMemoryUsage();</span>
+<span class="lineNum">     102 </span>        [<span class="branchCov" title="Branch 0 was taken 27535 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">      27535 :     if (moveout) {</span>
+<span class="lineNum">     103 </span>                :<span class="lineCov">      27535 :         *moveout = std::move(it-&gt;second.coin);</span>
+<span class="lineNum">     104 </span>                :            :     }
+<span class="lineNum">     105 </span>        [<span class="branchCov" title="Branch 0 was taken 20783 times"> + </span><span class="branchCov" title="Branch 1 was taken 6752 times"> + </span>]:<span class="lineCov">      27535 :     if (it-&gt;second.flags &amp; CCoinsCacheEntry::FRESH) {</span>
+<span class="lineNum">     106 </span>                :<span class="lineCov">      20783 :         cacheCoins.erase(it);</span>
+<span class="lineNum">     107 </span>                :            :     } else {
+<span class="lineNum">     108 </span>                :<span class="lineCov">       6752 :         it-&gt;second.flags |= CCoinsCacheEntry::DIRTY;</span>
+<span class="lineNum">     109 </span>                :<span class="lineCov">       6752 :         it-&gt;second.coin.Clear();</span>
+<span class="lineNum">     110 </span>                :            :     }
+<span class="lineNum">     111 </span>                :            :     return true;
+<span class="lineNum">     112 </span>                :            : }
+<span class="lineNum">     113 </span>                :            : 
+<a name="114"><span class="lineNum">     114 </span>                :<span class="lineCov">          1 : static const Coin coinEmpty;</span></a>
+<span class="lineNum">     115 </span>                :            : 
+<span class="lineNum">     116 </span>                :<span class="lineCov">     120777 : const Coin&amp; CCoinsViewCache::AccessCoin(const COutPoint &amp;outpoint) const {</span>
+<span class="lineNum">     117 </span>                :<span class="lineCov">     120777 :     CCoinsMap::const_iterator it = FetchCoin(outpoint);</span>
+<span class="lineNum">     118 </span>        [<span class="branchCov" title="Branch 0 was taken 120777 times"> + </span><span class="branchNoCov" title="Branch 1 was not taken"> - </span>]:<span class="lineCov">     120777 :     if (it == cacheCoins.end()) {</span>
+<span class="lineNum">     119 </span>                :            :         return coinEmpty;
+<span class="lineNum">     120 </span>                :            :     } else {
+<span class="lineNum">     121 </span>                :<span class="lineCov">     120777 :         return it-&gt;second.coin;</span>
+<span class="lineNum">     122 </span>                :            :     }
+<a name="123"><span class="lineNum">     123 </span>                :            : }</a>
+<span class="lineNum">     124 </span>                :            : 
+<span class="lineNum">     125 </span>                :<span class="lineCov">      59280 : bool CCoinsViewCache::HaveCoin(const COutPoint &amp;outpoint) const {</span>
+<span class="lineNum">     126 </span>                :<span class="lineCov">      59280 :     CCoinsMap::const_iterator it = FetchCoin(outpoint);</span>
+<span class="lineNum">     127 </span>[<span class="branchCov" title="Branch 0 was taken 24160 times"> + </span><span class="branchCov" title="Branch 1 was taken 35120 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 1 time"> + </span><span class="branchCov" title="Branch 3 was taken 24159 times"> + </span>]:<span class="lineCov">      59280 :     return (it != cacheCoins.end() &amp;&amp; !it-&gt;second.coin.IsSpent());</span>
+<a name="128"><span class="lineNum">     128 </span>                :            : }</a>
+<span class="lineNum">     129 </span>                :            : 
+<span class="lineNum">     130 </span>                :<span class="lineNoCov">          0 : bool CCoinsViewCache::HaveCoinInCache(const COutPoint &amp;outpoint) const {</span>
+<span class="lineNum">     131 </span>                :<span class="lineNoCov">          0 :     CCoinsMap::const_iterator it = cacheCoins.find(outpoint);</span>
+<span class="lineNum">     132 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :     return (it != cacheCoins.end() &amp;&amp; !it-&gt;second.coin.IsSpent());</span>
+<a name="133"><span class="lineNum">     133 </span>                :            : }</a>
+<span class="lineNum">     134 </span>                :            : 
+<span class="lineNum">     135 </span>                :<span class="lineCov">        675 : uint256 CCoinsViewCache::GetBestBlock() const {</span>
+<span class="lineNum">     136 </span>        [<span class="branchCov" title="Branch 0 was taken 338 times"> + </span><span class="branchCov" title="Branch 1 was taken 337 times"> + </span>]:<span class="lineCov">        675 :     if (hashBlock.IsNull())</span>
+<span class="lineNum">     137 </span>                :<span class="lineCov">        338 :         hashBlock = base-&gt;GetBestBlock();</span>
+<span class="lineNum">     138 </span>                :<span class="lineCov">        675 :     return hashBlock;</span>
+<a name="139"><span class="lineNum">     139 </span>                :            : }</a>
+<span class="lineNum">     140 </span>                :            : 
+<span class="lineNum">     141 </span>                :<span class="lineCov">        165 : void CCoinsViewCache::SetBestBlock(const uint256 &amp;hashBlockIn) {</span>
+<span class="lineNum">     142 </span>                :<span class="lineCov">        165 :     hashBlock = hashBlockIn;</span>
+<a name="143"><span class="lineNum">     143 </span>                :<span class="lineCov">        165 : }</span></a>
+<span class="lineNum">     144 </span>                :            : 
+<span class="lineNum">     145 </span>                :<span class="lineCov">        165 : bool CCoinsViewCache::BatchWrite(CCoinsMap &amp;mapCoins, const uint256 &amp;hashBlockIn) {</span>
+<span class="lineNum">     146 </span>        [<span class="branchCov" title="Branch 0 was taken 17691 times"> + </span><span class="branchCov" title="Branch 1 was taken 165 times"> + </span>]:<span class="lineCov">      17856 :     for (CCoinsMap::iterator it = mapCoins.begin(); it != mapCoins.end(); it = mapCoins.erase(it)) {</span>
+<span class="lineNum">     147 </span>                :            :         // Ignore non-dirty entries (optimization).
+<span class="lineNum">     148 </span>        [<span class="branchNoCov" title="Branch 0 was not taken"> - </span><span class="branchCov" title="Branch 1 was taken 17691 times"> + </span>]:<span class="lineCov">      17691 :         if (!(it-&gt;second.flags &amp; CCoinsCacheEntry::DIRTY)) {</span>
+<span class="lineNum">     149 </span>                :<span class="lineNoCov">          0 :             continue;</span>
+<span class="lineNum">     150 </span>                :            :         }
+<span class="lineNum">     151 </span>                :<span class="lineCov">      53073 :         CCoinsMap::iterator itUs = cacheCoins.find(it-&gt;first);</span>
+<span class="lineNum">     152 </span>        [<span class="branchCov" title="Branch 0 was taken 14252 times"> + </span><span class="branchCov" title="Branch 1 was taken 3439 times"> + </span>]:<span class="lineCov">      17691 :         if (itUs == cacheCoins.end()) {</span>
+<span class="lineNum">     153 </span>                :            :             // The parent cache does not have an entry, while the child does
+<span class="lineNum">     154 </span>                :            :             // We can ignore it if it's both FRESH and pruned in the child
+<span class="lineNum">     155 </span>[<span class="branchCov" title="Branch 0 was taken 14120 times"> + </span><span class="branchCov" title="Branch 1 was taken 132 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 14120 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">      14252 :             if (!(it-&gt;second.flags &amp; CCoinsCacheEntry::FRESH &amp;&amp; it-&gt;second.coin.IsSpent())) {</span>
+<span class="lineNum">     156 </span>                :            :                 // Otherwise we will need to create it in the parent
+<span class="lineNum">     157 </span>                :            :                 // and move the data up and mark it as dirty
+<span class="lineNum">     158 </span>                :<span class="lineCov">      28504 :                 CCoinsCacheEntry&amp; entry = cacheCoins[it-&gt;first];</span>
+<span class="lineNum">     159 </span>                :<span class="lineCov">      28504 :                 entry.coin = std::move(it-&gt;second.coin);</span>
+<span class="lineNum">     160 </span>                :<span class="lineCov">      28504 :                 cachedCoinsUsage += entry.coin.DynamicMemoryUsage();</span>
+<span class="lineNum">     161 </span>                :<span class="lineCov">      14252 :                 entry.flags = CCoinsCacheEntry::DIRTY;</span>
+<span class="lineNum">     162 </span>                :            :                 // We can mark it FRESH in the parent if it was FRESH in the child
+<span class="lineNum">     163 </span>                :            :                 // Otherwise it might have just been flushed from the parent's cache
+<span class="lineNum">     164 </span>                :            :                 // and already exist in the grandparent
+<span class="lineNum">     165 </span>        [<span class="branchCov" title="Branch 0 was taken 14120 times"> + </span><span class="branchCov" title="Branch 1 was taken 132 times"> + </span>]:<span class="lineCov">      14252 :                 if (it-&gt;second.flags &amp; CCoinsCacheEntry::FRESH) {</span>
+<span class="lineNum">     166 </span>                :<span class="lineCov">      14120 :                     entry.flags |= CCoinsCacheEntry::FRESH;</span>
+<span class="lineNum">     167 </span>                :            :                 }
+<span class="lineNum">     168 </span>                :            :             }
+<span class="lineNum">     169 </span>                :            :         } else {
+<span class="lineNum">     170 </span>                :            :             // Assert that the child cache entry was not marked FRESH if the
+<span class="lineNum">     171 </span>                :            :             // parent cache entry has unspent outputs. If this ever happens,
+<span class="lineNum">     172 </span>                :            :             // it means the FRESH flag was misapplied and there is a logic
+<span class="lineNum">     173 </span>                :            :             // error in the calling code.
+<span class="lineNum">     174 </span>[<span class="branchCov" title="Branch 0 was taken 15 times"> + </span><span class="branchCov" title="Branch 1 was taken 3424 times"> + </span>][<span class="branchCov" title="Branch 2 was taken 15 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>]:<span class="lineCov">       3439 :             if ((it-&gt;second.flags &amp; CCoinsCacheEntry::FRESH) &amp;&amp; !itUs-&gt;second.coin.IsSpent()) {</span>
+<span class="lineNum">     175 </span>        [<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :                 throw std::logic_error(&quot;FRESH flag misapplied to cache entry for base transaction with spendable outputs&quot;);</span>
+<span class="lineNum">     176 </span>                :            :             }
+<span class="lineNum">     177 </span>                :            : 
+<span class="lineNum">     178 </span>                :            :             // Found the entry in the parent cache
+<span class="lineNum">     179 </span>[<span class="branchCov" title="Branch 0 was taken 3350 times"> + </span><span class="branchCov" title="Branch 1 was taken 89 times"> + </span>][<span class="branchNoCov" title="Branch 2 was not taken"> - </span><span class="branchCov" title="Branch 3 was taken 3350 times"> + </span>]:<span class="lineCov">       3439 :             if ((itUs-&gt;second.flags &amp; CCoinsCacheEntry::FRESH) &amp;&amp; it-&gt;second.coin.IsSpent()) {</span>
+<span class="lineNum">     180 </span>                :            :                 // The grandparent does not have an entry, and the child is
+<span class="lineNum">     181 </span>                :            :                 // modified and being pruned. This means we can just delete
+<span class="lineNum">     182 </span>                :            :                 // it from the parent.
+<span class="lineNum">     183 </span>                :<span class="lineCov">       6700 :                 cachedCoinsUsage -= itUs-&gt;second.coin.DynamicMemoryUsage();</span>
+<span class="lineNum">     184 </span>                :<span class="lineCov">       3350 :                 cacheCoins.erase(itUs);</span>
+<span class="lineNum">     185 </span>                :            :             } else {
+<span class="lineNum">     186 </span>                :            :                 // A normal modification.
+<span class="lineNum">     187 </span>                :<span class="lineCov">        178 :                 cachedCoinsUsage -= itUs-&gt;second.coin.DynamicMemoryUsage();</span>
+<span class="lineNum">     188 </span>                :<span class="lineCov">        267 :                 itUs-&gt;second.coin = std::move(it-&gt;second.coin);</span>
+<span class="lineNum">     189 </span>                :<span class="lineCov">        178 :                 cachedCoinsUsage += itUs-&gt;second.coin.DynamicMemoryUsage();</span>
+<span class="lineNum">     190 </span>                :<span class="lineCov">      17691 :                 itUs-&gt;second.flags |= CCoinsCacheEntry::DIRTY;</span>
+<span class="lineNum">     191 </span>                :            :                 // NOTE: It is possible the child has a FRESH flag here in
+<span class="lineNum">     192 </span>                :            :                 // the event the entry we found in the parent is pruned. But
+<span class="lineNum">     193 </span>                :            :                 // we must not copy that FRESH flag to the parent as that
+<span class="lineNum">     194 </span>                :            :                 // pruned state likely still needs to be communicated to the
+<span class="lineNum">     195 </span>                :            :                 // grandparent.
+<span class="lineNum">     196 </span>                :            :             }
+<span class="lineNum">     197 </span>                :            :         }
+<span class="lineNum">     198 </span>                :            :     }
+<span class="lineNum">     199 </span>                :<span class="lineCov">        165 :     hashBlock = hashBlockIn;</span>
+<span class="lineNum">     200 </span>                :<span class="lineCov">        165 :     return true;</span>
+<a name="201"><span class="lineNum">     201 </span>                :            : }</a>
+<span class="lineNum">     202 </span>                :            : 
+<span class="lineNum">     203 </span>                :<span class="lineCov">        167 : bool CCoinsViewCache::Flush() {</span>
+<span class="lineNum">     204 </span>                :<span class="lineCov">        167 :     bool fOk = base-&gt;BatchWrite(cacheCoins, hashBlock);</span>
+<span class="lineNum">     205 </span>                :<span class="lineCov">        334 :     cacheCoins.clear();</span>
+<span class="lineNum">     206 </span>                :<span class="lineCov">        167 :     cachedCoinsUsage = 0;</span>
+<span class="lineNum">     207 </span>                :<span class="lineCov">        167 :     return fOk;</span>
+<a name="208"><span class="lineNum">     208 </span>                :            : }</a>
+<span class="lineNum">     209 </span>                :            : 
+<span class="lineNum">     210 </span>                :<span class="lineNoCov">          0 : void CCoinsViewCache::Uncache(const COutPoint&amp; hash)</span>
+<span class="lineNum">     211 </span>                :            : {
+<span class="lineNum">     212 </span>                :<span class="lineNoCov">          0 :     CCoinsMap::iterator it = cacheCoins.find(hash);</span>
+<span class="lineNum">     213 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :     if (it != cacheCoins.end() &amp;&amp; it-&gt;second.flags == 0) {</span>
+<span class="lineNum">     214 </span>                :<span class="lineNoCov">          0 :         cachedCoinsUsage -= it-&gt;second.coin.DynamicMemoryUsage();</span>
+<span class="lineNum">     215 </span>                :<span class="lineNoCov">          0 :         cacheCoins.erase(it);</span>
+<span class="lineNum">     216 </span>                :            :     }
+<a name="217"><span class="lineNum">     217 </span>                :<span class="lineNoCov">          0 : }</span></a>
+<span class="lineNum">     218 </span>                :            : 
+<span class="lineNum">     219 </span>                :<span class="lineCov">        167 : unsigned int CCoinsViewCache::GetCacheSize() const {</span>
+<span class="lineNum">     220 </span>                :<span class="lineCov">        334 :     return cacheCoins.size();</span>
+<a name="221"><span class="lineNum">     221 </span>                :            : }</a>
+<span class="lineNum">     222 </span>                :            : 
+<span class="lineNum">     223 </span>                :<span class="lineNoCov">          0 : CAmount CCoinsViewCache::GetValueIn(const CTransaction&amp; tx) const</span>
+<span class="lineNum">     224 </span>                :            : {
+<span class="lineNum">     225 </span>                :            :     if (tx.IsCoinBase())
+<span class="lineNum">     226 </span>                :            :         return 0;
+<span class="lineNum">     227 </span>                :            : 
+<span class="lineNum">     228 </span>                :            :     CAmount nResult = 0;
+<span class="lineNum">     229 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     for (unsigned int i = 0; i &lt; tx.vin.size(); i++)</span>
+<span class="lineNum">     230 </span>                :<span class="lineNoCov">          0 :         nResult += AccessCoin(tx.vin[i].prevout).out.nValue;</span>
+<span class="lineNum">     231 </span>                :            : 
+<span class="lineNum">     232 </span>                :            :     return nResult;
+<a name="233"><span class="lineNum">     233 </span>                :            : }</a>
+<span class="lineNum">     234 </span>                :            : 
+<span class="lineNum">     235 </span>                :<span class="lineCov">      17501 : bool CCoinsViewCache::HaveInputs(const CTransaction&amp; tx) const</span>
+<span class="lineNum">     236 </span>                :            : {
+<span class="lineNum">     237 </span>                :            :     if (!tx.IsCoinBase()) {
+<span class="lineNum">     238 </span>        [<span class="branchCov" title="Branch 0 was taken 24167 times"> + </span><span class="branchCov" title="Branch 1 was taken 17492 times"> + </span>]:<span class="lineCov">      41659 :         for (unsigned int i = 0; i &lt; tx.vin.size(); i++) {</span>
+<span class="lineNum">     239 </span>        [<span class="branchCov" title="Branch 1 was taken 24158 times"> + </span><span class="branchCov" title="Branch 2 was taken 9 times"> + </span>]:<span class="lineCov">      24167 :             if (!HaveCoin(tx.vin[i].prevout)) {</span>
+<span class="lineNum">     240 </span>                :            :                 return false;
+<span class="lineNum">     241 </span>                :            :             }
+<span class="lineNum">     242 </span>                :            :         }
+<span class="lineNum">     243 </span>                :            :     }
+<span class="lineNum">     244 </span>                :            :     return true;
+<span class="lineNum">     245 </span>                :            : }
+<span class="lineNum">     246 </span>                :            : 
+<span class="lineNum">     247 </span>                :<span class="lineCov">          1 : static const size_t MIN_TRANSACTION_OUTPUT_WEIGHT = WITNESS_SCALE_FACTOR * ::GetSerializeSize(CTxOut(), PROTOCOL_VERSION);</span>
+<a name="248"><span class="lineNum">     248 </span>                :<span class="lineCov">          1 : static const size_t MAX_OUTPUTS_PER_BLOCK = MAX_BLOCK_WEIGHT / MIN_TRANSACTION_OUTPUT_WEIGHT;</span></a>
+<span class="lineNum">     249 </span>                :            : 
+<span class="lineNum">     250 </span>                :<span class="lineNoCov">          0 : const Coin&amp; AccessByTxid(const CCoinsViewCache&amp; view, const uint256&amp; txid)</span>
+<span class="lineNum">     251 </span>                :            : {
+<span class="lineNum">     252 </span>                :            :     COutPoint iter(txid, 0);
+<span class="lineNum">     253 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :     while (iter.n &lt; MAX_OUTPUTS_PER_BLOCK) {</span>
+<span class="lineNum">     254 </span>                :<span class="lineNoCov">          0 :         const Coin&amp; alternate = view.AccessCoin(iter);</span>
+<span class="lineNum">     255 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         if (!alternate.IsSpent()) return alternate;</span>
+<span class="lineNum">     256 </span>                :<span class="lineNoCov">          0 :         ++iter.n;</span>
+<a name="257"><span class="lineNum">     257 </span>                :            :     }</a>
+<span class="lineNum">     258 </span>                :            :     return coinEmpty;
+<span class="lineNum">     259 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 3 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 4 was not taken"> - </span>]:<span class="lineCov">          4 : }</span>
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>

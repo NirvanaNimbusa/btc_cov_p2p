@@ -1,0 +1,339 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html lang="en">
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>LCOV - total_coverage.info - src/hash.h</title>
+  <link rel="stylesheet" type="text/css" href="../gcov.css">
+</head>
+
+<body>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="title">LCOV - code coverage report</td></tr>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+
+    <tr>
+      <td width="100%">
+        <table cellpadding=1 border=0 width="100%">
+          <tr>
+            <td width="10%" class="headerItem">Current view:</td>
+            <td width="35%" class="headerValue"><a href="../index.html">top level</a> - <a href="index.html">src</a> - hash.h<span style="font-size: 80%;"> (source / <a href="hash.h.func-sort-c.html">functions</a>)</span></td>
+            <td width="5%"></td>
+            <td width="15%"></td>
+            <td width="10%" class="headerCovTableHead">Hit</td>
+            <td width="10%" class="headerCovTableHead">Total</td>
+            <td width="15%" class="headerCovTableHead">Coverage</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Test:</td>
+            <td class="headerValue">total_coverage.info</td>
+            <td></td>
+            <td class="headerItem">Lines:</td>
+            <td class="headerCovTableEntry">33</td>
+            <td class="headerCovTableEntry">51</td>
+            <td class="headerCovTableEntryLo">64.7 %</td>
+          </tr>
+          <tr>
+            <td class="headerItem">Date:</td>
+            <td class="headerValue">2018-09-20 03:23:27</td>
+            <td></td>
+            <td class="headerItem">Functions:</td>
+            <td class="headerCovTableEntry">6</td>
+            <td class="headerCovTableEntry">15</td>
+            <td class="headerCovTableEntryLo">40.0 %</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td class="headerItem">Branches:</td>
+            <td class="headerCovTableEntry">28</td>
+            <td class="headerCovTableEntry">111</td>
+            <td class="headerCovTableEntryLo">25.2 %</td>
+          </tr>
+          <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+  </table>
+
+  <table cellpadding=0 cellspacing=0 border=0>
+    <tr>
+      <td><br></td>
+    </tr>
+    <tr>
+      <td>
+<pre class="sourceHeading">           Branch data     Line data    Source code</pre>
+<pre class="source">
+<a name="1"><span class="lineNum">       1 </span>                :            : // Copyright (c) 2009-2010 Satoshi Nakamoto</a>
+<span class="lineNum">       2 </span>                :            : // Copyright (c) 2009-2018 The Bitcoin Core developers
+<span class="lineNum">       3 </span>                :            : // Distributed under the MIT software license, see the accompanying
+<span class="lineNum">       4 </span>                :            : // file COPYING or http://www.opensource.org/licenses/mit-license.php.
+<span class="lineNum">       5 </span>                :            : 
+<span class="lineNum">       6 </span>                :            : #ifndef BITCOIN_HASH_H
+<span class="lineNum">       7 </span>                :            : #define BITCOIN_HASH_H
+<span class="lineNum">       8 </span>                :            : 
+<span class="lineNum">       9 </span>                :            : #include &lt;crypto/ripemd160.h&gt;
+<span class="lineNum">      10 </span>                :            : #include &lt;crypto/sha256.h&gt;
+<span class="lineNum">      11 </span>                :            : #include &lt;prevector.h&gt;
+<span class="lineNum">      12 </span>                :            : #include &lt;serialize.h&gt;
+<span class="lineNum">      13 </span>                :            : #include &lt;uint256.h&gt;
+<span class="lineNum">      14 </span>                :            : #include &lt;version.h&gt;
+<span class="lineNum">      15 </span>                :            : 
+<span class="lineNum">      16 </span>                :            : #include &lt;vector&gt;
+<span class="lineNum">      17 </span>                :            : 
+<span class="lineNum">      18 </span>                :            : typedef uint256 ChainCode;
+<span class="lineNum">      19 </span>                :            : 
+<span class="lineNum">      20 </span>                :            : /** A hasher class for Bitcoin's 256-bit hash (double SHA-256). */
+<span class="lineNum">      21 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      64628 : class CHash256 {</span>
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span>][<span class="branchCov" title="Branch 10 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 13 was not executed"> # </span><span class="branchNoExec" title="Branch 14 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 5 was taken 18 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>][<span class="branchCov" title="Branch 8 was taken 137 times"> + </span><span class="branchNoCov" title="Branch 9 was not taken"> - </span>]
+<span class="lineNum">         </span>      [<span class="branchNoExec" title="Branch 3 was not executed"> # </span>][<span class="branchNoExec" title="Branch 6 was not executed"> # </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 13 was not executed"> # </span><span class="branchNoExec" title="Branch 14 was not executed"> # </span>]
+<span class="lineNum">      22 </span>                :            : private:
+<span class="lineNum">      23 </span>                :            :     CSHA256 sha;
+<span class="lineNum">      24 </span>                :            : public:
+<a name="25"><span class="lineNum">      25 </span>                :            :     static const size_t OUTPUT_SIZE = CSHA256::OUTPUT_SIZE;</a>
+<span class="lineNum">      26 </span>                :            : 
+<span class="lineNum">      27 </span>                :<span class="lineCov">      64628 :     void Finalize(unsigned char hash[OUTPUT_SIZE]) {</span>
+<span class="lineNum">      28 </span>                :            :         unsigned char buf[CSHA256::OUTPUT_SIZE];
+<span class="lineNum">      29 </span>                :<span class="lineCov">      64628 :         sha.Finalize(buf);</span>
+<span class="lineNum">      30 </span>                :<span class="lineCov">      64628 :         sha.Reset().Write(buf, CSHA256::OUTPUT_SIZE).Finalize(hash);</span>
+<span class="lineNum">      31 </span>                :<span class="lineCov">      64628 :     }</span>
+<span class="lineNum">      32 </span>                :            : 
+<span class="lineNum">      33 </span>                :            :     CHash256&amp; Write(const unsigned char *data, size_t len) {
+<span class="lineNum">      34 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">     725375 :         sha.Write(data, len);</span>
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 9 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 10 was not taken"> - </span>][<span class="branchCov" title="Branch 12 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 13 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 15 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 16 was not taken"> - </span>][<span class="branchCov" title="Branch 18 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 19 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 21 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 22 was not taken"> - </span>][<span class="branchCov" title="Branch 24 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 25 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 27 was taken 2048 times"> + </span><span class="branchNoCov" title="Branch 28 was not taken"> - </span>][<span class="branchNoExec" title="Branch 30 was not executed"> # </span><span class="branchNoExec" title="Branch 31 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 38 was taken 2 times"> + </span><span class="branchNoCov" title="Branch 39 was not taken"> - </span>][<span class="branchCov" title="Branch 41 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 42 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 2 was taken 3366 times"> + </span><span class="branchNoCov" title="Branch 3 was not taken"> - </span>][<span class="branchCov" title="Branch 5 was taken 14093 times"> + </span><span class="branchNoCov" title="Branch 6 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 15 was not executed"> # </span><span class="branchNoExec" title="Branch 16 was not executed"> # </span>][<span class="branchNoExec" title="Branch 18 was not executed"> # </span><span class="branchNoExec" title="Branch 19 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchCov" title="Branch 21 was taken 18 times"> + </span><span class="branchNoCov" title="Branch 22 was not taken"> - </span>][<span class="branchCov" title="Branch 24 was taken 137 times"> + </span><span class="branchNoCov" title="Branch 25 was not taken"> - </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span>][<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 13 was not executed"> # </span><span class="branchNoExec" title="Branch 14 was not executed"> # </span>][<span class="branchNoExec" title="Branch 18 was not executed"> # </span><span class="branchNoExec" title="Branch 19 was not executed"> # </span>]
+<span class="lineNum">         </span>   [<span class="branchNoExec" title="Branch 6 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span>][<span class="branchNoExec" title="Branch 8 was not executed"> # </span>]
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 13 was not executed"> # </span><span class="branchNoExec" title="Branch 14 was not executed"> # </span>][<span class="branchNoExec" title="Branch 35 was not executed"> # </span><span class="branchNoExec" title="Branch 36 was not executed"> # </span>]
+<span class="lineNum">      35 </span>                :            :         return *this;
+<span class="lineNum">      36 </span>                :            :     }
+<span class="lineNum">      37 </span>                :            : 
+<span class="lineNum">      38 </span>                :            :     CHash256&amp; Reset() {
+<span class="lineNum">      39 </span>                :            :         sha.Reset();
+<span class="lineNum">      40 </span>                :            :         return *this;
+<span class="lineNum">      41 </span>                :            :     }
+<span class="lineNum">      42 </span>                :            : };
+<span class="lineNum">      43 </span>                :            : 
+<span class="lineNum">      44 </span>                :            : /** A hasher class for Bitcoin's 160-bit hash (SHA-256 + RIPEMD-160). */
+<span class="lineNum">      45 </span>        [<span class="branchCov" title="Branch 1 was taken 6666 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       6666 : class CHash160 {</span>
+<span class="lineNum">      46 </span>                :            : private:
+<span class="lineNum">      47 </span>                :            :     CSHA256 sha;
+<span class="lineNum">      48 </span>                :            : public:
+<a name="49"><span class="lineNum">      49 </span>                :            :     static const size_t OUTPUT_SIZE = CRIPEMD160::OUTPUT_SIZE;</a>
+<span class="lineNum">      50 </span>                :            : 
+<span class="lineNum">      51 </span>                :<span class="lineCov">       6666 :     void Finalize(unsigned char hash[OUTPUT_SIZE]) {</span>
+<span class="lineNum">      52 </span>                :            :         unsigned char buf[CSHA256::OUTPUT_SIZE];
+<span class="lineNum">      53 </span>                :<span class="lineCov">       6666 :         sha.Finalize(buf);</span>
+<span class="lineNum">      54 </span>                :<span class="lineCov">       6666 :         CRIPEMD160().Write(buf, CSHA256::OUTPUT_SIZE).Finalize(hash);</span>
+<span class="lineNum">      55 </span>                :<span class="lineCov">       6666 :     }</span>
+<span class="lineNum">      56 </span>                :            : 
+<span class="lineNum">      57 </span>                :            :     CHash160&amp; Write(const unsigned char *data, size_t len) {
+<span class="lineNum">      58 </span>        [<span class="branchCov" title="Branch 1 was taken 6666 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>]:<span class="lineCov">       6666 :         sha.Write(data, len);</span>
+<span class="lineNum">      59 </span>                :            :         return *this;
+<span class="lineNum">      60 </span>                :            :     }
+<span class="lineNum">      61 </span>                :            : 
+<span class="lineNum">      62 </span>                :            :     CHash160&amp; Reset() {
+<span class="lineNum">      63 </span>                :            :         sha.Reset();
+<span class="lineNum">      64 </span>                :            :         return *this;
+<span class="lineNum">      65 </span>                :            :     }
+<span class="lineNum">      66 </span>                :            : };
+<span class="lineNum">      67 </span>                :            : 
+<a name="68"><span class="lineNum">      68 </span>                :            : /** Compute the 256-bit hash of an object. */</a>
+<span class="lineNum">      69 </span>                :            : template&lt;typename T1&gt;
+<span class="lineNum">      70 </span>                :<span class="lineCov">        502 : inline uint256 Hash(const T1 pbegin, const T1 pend)</span>
+<span class="lineNum">      71 </span>                :            : {
+<span class="lineNum">      72 </span>                :            :     static const unsigned char pblank[1] = {};
+<span class="lineNum">      73 </span>                :<span class="lineCov">        502 :     uint256 result;</span>
+<span class="lineNum">      74 </span>                :<span class="lineCov">        502 :     CHash256().Write(pbegin == pend ? pblank : (const unsigned char*)&amp;pbegin[0], (pend - pbegin) * sizeof(pbegin[0]))</span>
+<span class="lineNum">      75 </span>        [<span class="branchCov" title="Branch 0 was taken 72 times"> + </span><span class="branchCov" title="Branch 1 was taken 430 times"> + </span>]:<span class="lineCov">        502 :               .Finalize((unsigned char*)&amp;result);</span>
+<span class="lineNum">      76 </span>                :<span class="lineCov">        502 :     return result;</span>
+<span class="lineNum">      77 </span>                :            : }
+<span class="lineNum">      78 </span>                :            : 
+<a name="79"><span class="lineNum">      79 </span>                :            : /** Compute the 256-bit hash of the concatenation of two objects. */</a>
+<span class="lineNum">      80 </span>                :            : template&lt;typename T1, typename T2&gt;
+<span class="lineNum">      81 </span>                :<span class="lineNoCov">          0 : inline uint256 Hash(const T1 p1begin, const T1 p1end,</span>
+<span class="lineNum">      82 </span>                :            :                     const T2 p2begin, const T2 p2end) {
+<span class="lineNum">      83 </span>                :            :     static const unsigned char pblank[1] = {};
+<span class="lineNum">      84 </span>                :<span class="lineNoCov">          0 :     uint256 result;</span>
+<span class="lineNum">      85 </span>                :<span class="lineNoCov">          0 :     CHash256().Write(p1begin == p1end ? pblank : (const unsigned char*)&amp;p1begin[0], (p1end - p1begin) * sizeof(p1begin[0]))</span>
+<span class="lineNum">      86 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :               .Write(p2begin == p2end ? pblank : (const unsigned char*)&amp;p2begin[0], (p2end - p2begin) * sizeof(p2begin[0]))</span>
+<span class="lineNum">      87 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :               .Finalize((unsigned char*)&amp;result);</span>
+<span class="lineNum">      88 </span>                :<span class="lineNoCov">          0 :     return result;</span>
+<span class="lineNum">      89 </span>                :            : }
+<span class="lineNum">      90 </span>                :            : 
+<a name="91"><span class="lineNum">      91 </span>                :            : /** Compute the 160-bit hash an object. */</a>
+<span class="lineNum">      92 </span>                :            : template&lt;typename T1&gt;
+<span class="lineNum">      93 </span>                :<span class="lineNoCov">          0 : inline uint160 Hash160(const T1 pbegin, const T1 pend)</span>
+<span class="lineNum">      94 </span>                :            : {
+<span class="lineNum">      95 </span>                :            :     static unsigned char pblank[1] = {};
+<span class="lineNum">      96 </span>                :<span class="lineNoCov">          0 :     uint160 result;</span>
+<span class="lineNum">      97 </span>                :<span class="lineNoCov">          0 :     CHash160().Write(pbegin == pend ? pblank : (const unsigned char*)&amp;pbegin[0], (pend - pbegin) * sizeof(pbegin[0]))</span>
+<span class="lineNum">      98 </span>[<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>][<span class="branchNoExec" title="Branch 2 was not executed"> # </span><span class="branchNoExec" title="Branch 3 was not executed"> # </span>]:<span class="lineNoCov">          0 :               .Finalize((unsigned char*)&amp;result);</span>
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]
+<span class="lineNum">      99 </span>                :<span class="lineNoCov">          0 :     return result;</span>
+<span class="lineNum">     100 </span>                :            : }
+<span class="lineNum">     101 </span>                :            : 
+<span class="lineNum">     102 </span>                :            : /** Compute the 160-bit hash of a vector. */
+<span class="lineNum">     103 </span>                :            : inline uint160 Hash160(const std::vector&lt;unsigned char&gt;&amp; vch)
+<span class="lineNum">     104 </span>                :            : {
+<span class="lineNum">     105 </span>                :            :     return Hash160(vch.begin(), vch.end());
+<span class="lineNum">     106 </span>                :            : }
+<span class="lineNum">     107 </span>                :            : 
+<span class="lineNum">     108 </span>                :            : /** Compute the 160-bit hash of a vector. */
+<span class="lineNum">     109 </span>                :            : template&lt;unsigned int N&gt;
+<span class="lineNum">     110 </span>                :            : inline uint160 Hash160(const prevector&lt;N, unsigned char&gt;&amp; vch)
+<span class="lineNum">     111 </span>                :            : {
+<span class="lineNum">     112 </span>                :            :     return Hash160(vch.begin(), vch.end());
+<span class="lineNum">     113 </span>                :            : }
+<span class="lineNum">     114 </span>                :            : 
+<span class="lineNum">     115 </span>                :            : /** A writer stream (for serialization) that computes a 256-bit hash. */
+<span class="lineNum">     116 </span>                :            : class CHashWriter
+<span class="lineNum">     117 </span>                :            : {
+<span class="lineNum">     118 </span>                :            : private:
+<span class="lineNum">     119 </span>                :            :     CHash256 ctx;
+<span class="lineNum">     120 </span>                :            : 
+<span class="lineNum">     121 </span>                :            :     const int nType;
+<span class="lineNum">     122 </span>                :            :     const int nVersion;
+<span class="lineNum">     123 </span>                :            : public:
+<span class="lineNum">     124 </span>                :            : 
+<span class="lineNum">     125 </span>                :<span class="lineCov">     127400 :     CHashWriter(int nTypeIn, int nVersionIn) : nType(nTypeIn), nVersion(nVersionIn) {}</span>
+<span class="lineNum">     126 </span>                :            : 
+<span class="lineNum">     127 </span>                :<span class="lineNoCov">          0 :     int GetType() const { return nType; }</span>
+<span class="lineNum">     128 </span>                :<span class="lineCov">      21138 :     int GetVersion() const { return nVersion; }</span>
+<span class="lineNum">     129 </span>                :            : 
+<span class="lineNum">     130 </span>                :            :     void write(const char *pch, size_t size) {
+<span class="lineNum">     131 </span>                :<span class="lineCov">    1060975 :         ctx.Write((const unsigned char*)pch, size);</span>
+<span class="lineNum">     132 </span>                :            :     }
+<span class="lineNum">     133 </span>                :            : 
+<span class="lineNum">     134 </span>                :            :     // invalidates the object
+<span class="lineNum">     135 </span>                :            :     uint256 GetHash() {
+<span class="lineNum">     136 </span>                :<span class="lineCov">      63700 :         uint256 result;</span>
+<span class="lineNum">     137 </span>[<span class="branchCov" title="Branch 1 was taken 18 times"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchCov" title="Branch 4 was taken 139 times"> + </span><span class="branchNoCov" title="Branch 5 was not taken"> - </span>]:<span class="lineCov">      63700 :         ctx.Finalize((unsigned char*)&amp;result);</span>
+<span class="lineNum">         </span>[<span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span>][<span class="branchCov" title="Branch 10 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 11 was not taken"> - </span>]
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 13 was not executed"> # </span><span class="branchNoExec" title="Branch 14 was not executed"> # </span>]
+<span class="lineNum">     138 </span>                :            :         return result;
+<span class="lineNum">     139 </span>                :            :     }
+<span class="lineNum">     140 </span>                :            : 
+<span class="lineNum">     141 </span>                :            :     template&lt;typename T&gt;
+<span class="lineNum">     142 </span>                :            :     CHashWriter&amp; operator&lt;&lt;(const T&amp; obj) {
+<span class="lineNum">     143 </span>                :            :         // Serialize to this stream
+<span class="lineNum">     144 </span>[<span class="branchCov" title="Branch 1 was taken 1 time"> + </span><span class="branchNoCov" title="Branch 2 was not taken"> - </span>][<span class="branchNoExec" title="Branch 4 was not executed"> # </span><span class="branchNoExec" title="Branch 5 was not executed"> # </span>]:<span class="lineCov">     175481 :         ::Serialize(*this, obj);</span>
+<span class="lineNum">         </span>        [<span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span>]
+<span class="lineNum">         </span>  [<span class="branchNoExec" title="Branch 10 was not executed"> # </span><span class="branchNoExec" title="Branch 11 was not executed"> # </span><span class="branchNoExec" title="Branch 7 was not executed"> # </span><span class="branchNoExec" title="Branch 8 was not executed"> # </span>]
+<span class="lineNum">     145 </span>                :            :         return (*this);
+<span class="lineNum">     146 </span>                :            :     }
+<span class="lineNum">     147 </span>                :            : };
+<span class="lineNum">     148 </span>                :            : 
+<span class="lineNum">     149 </span>                :            : /** Reads data from an underlying stream, while hashing the read data. */
+<span class="lineNum">     150 </span>                :            : template&lt;typename Source&gt;
+<span class="lineNum">     151 </span>                :            : class CHashVerifier : public CHashWriter
+<span class="lineNum">     152 </span>                :            : {
+<span class="lineNum">     153 </span>                :            : private:
+<span class="lineNum">     154 </span>                :            :     Source* source;
+<span class="lineNum">     155 </span>                :            : 
+<span class="lineNum">     156 </span>                :            : public:
+<a name="157"><span class="lineNum">     157 </span>                :<span class="lineCov">         36 :     explicit CHashVerifier(Source* source_) : CHashWriter(source_-&gt;GetType(), source_-&gt;GetVersion()), source(source_) {}</span></a>
+<span class="lineNum">     158 </span>                :            : 
+<span class="lineNum">     159 </span>                :<span class="lineCov">      43557 :     void read(char* pch, size_t nSize)</span>
+<span class="lineNum">     160 </span>                :            :     {
+<span class="lineNum">     161 </span>                :<span class="lineCov">      43557 :         source-&gt;read(pch, nSize);</span>
+<span class="lineNum">     162 </span>                :<span class="lineCov">      87114 :         this-&gt;write(pch, nSize);</span>
+<a name="163"><span class="lineNum">     163 </span>                :<span class="lineCov">      43557 :     }</span></a>
+<span class="lineNum">     164 </span>                :            : 
+<span class="lineNum">     165 </span>                :<span class="lineNoCov">          0 :     void ignore(size_t nSize)</span>
+<span class="lineNum">     166 </span>                :            :     {
+<span class="lineNum">     167 </span>                :            :         char data[1024];
+<span class="lineNum">     168 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchNoExec" title="Branch 1 was not executed"> # </span>]:<span class="lineNoCov">          0 :         while (nSize &gt; 0) {</span>
+<span class="lineNum">     169 </span>                :<span class="lineNoCov">          0 :             size_t now = std::min&lt;size_t&gt;(nSize, 1024);</span>
+<span class="lineNum">     170 </span>                :<span class="lineNoCov">          0 :             read(data, now);</span>
+<span class="lineNum">     171 </span>                :<span class="lineNoCov">          0 :             nSize -= now;</span>
+<span class="lineNum">     172 </span>                :            :         }
+<span class="lineNum">     173 </span>                :<span class="lineNoCov">          0 :     }</span>
+<span class="lineNum">     174 </span>                :            : 
+<span class="lineNum">     175 </span>                :            :     template&lt;typename T&gt;
+<span class="lineNum">     176 </span>                :            :     CHashVerifier&lt;Source&gt;&amp; operator&gt;&gt;(T&amp;&amp; obj)
+<span class="lineNum">     177 </span>                :            :     {
+<span class="lineNum">     178 </span>                :            :         // Unserialize from this stream
+<span class="lineNum">     179 </span>        [<span class="branchNoExec" title="Branch 1 was not executed"> # </span><span class="branchNoExec" title="Branch 2 was not executed"> # </span>]:<span class="lineCov">      13414 :         ::Unserialize(*this, obj);</span>
+<span class="lineNum">     180 </span>                :            :         return (*this);
+<span class="lineNum">     181 </span>                :            :     }
+<span class="lineNum">     182 </span>                :            : };
+<span class="lineNum">     183 </span>                :            : 
+<a name="184"><span class="lineNum">     184 </span>                :            : /** Compute the 256-bit hash of an object's serialization. */</a>
+<span class="lineNum">     185 </span>                :            : template&lt;typename T&gt;
+<span class="lineNum">     186 </span>                :<span class="lineCov">      23495 : uint256 SerializeHash(const T&amp; obj, int nType=SER_GETHASH, int nVersion=PROTOCOL_VERSION)</span>
+<span class="lineNum">     187 </span>                :            : {
+<span class="lineNum">     188 </span>                :<span class="lineCov">      23495 :     CHashWriter ss(nType, nVersion);</span>
+<span class="lineNum">     189 </span>                :<span class="lineCov">      23495 :     ss &lt;&lt; obj;</span>
+<span class="lineNum">     190 </span>                :<span class="lineCov">      23495 :     return ss.GetHash();</span>
+<span class="lineNum">     191 </span>                :            : }
+<span class="lineNum">     192 </span>                :            : 
+<span class="lineNum">     193 </span>                :            : unsigned int MurmurHash3(unsigned int nHashSeed, const std::vector&lt;unsigned char&gt;&amp; vDataToHash);
+<span class="lineNum">     194 </span>                :            : 
+<span class="lineNum">     195 </span>                :            : void BIP32Hash(const ChainCode &amp;chainCode, unsigned int nChild, unsigned char header, const unsigned char data[32], unsigned char output[64]);
+<span class="lineNum">     196 </span>                :            : 
+<span class="lineNum">     197 </span>                :            : /** SipHash-2-4 */
+<span class="lineNum">     198 </span>                :            : class CSipHasher
+<span class="lineNum">     199 </span>                :            : {
+<span class="lineNum">     200 </span>                :            : private:
+<span class="lineNum">     201 </span>                :            :     uint64_t v[4];
+<span class="lineNum">     202 </span>                :            :     uint64_t tmp;
+<span class="lineNum">     203 </span>                :            :     int count;
+<span class="lineNum">     204 </span>                :            : 
+<span class="lineNum">     205 </span>                :            : public:
+<span class="lineNum">     206 </span>                :            :     /** Construct a SipHash calculator initialized with 128-bit key (k0, k1) */
+<span class="lineNum">     207 </span>                :            :     CSipHasher(uint64_t k0, uint64_t k1);
+<span class="lineNum">     208 </span>                :            :     /** Hash a 64-bit integer worth of data
+<span class="lineNum">     209 </span>                :            :      *  It is treated as if this was the little-endian interpretation of 8 bytes.
+<span class="lineNum">     210 </span>                :            :      *  This function can only be used when a multiple of 8 bytes have been written so far.
+<span class="lineNum">     211 </span>                :            :      */
+<span class="lineNum">     212 </span>                :            :     CSipHasher&amp; Write(uint64_t data);
+<span class="lineNum">     213 </span>                :            :     /** Hash arbitrary bytes. */
+<span class="lineNum">     214 </span>                :            :     CSipHasher&amp; Write(const unsigned char* data, size_t size);
+<span class="lineNum">     215 </span>                :            :     /** Compute the 64-bit SipHash-2-4 of the data written so far. The object remains untouched. */
+<span class="lineNum">     216 </span>                :            :     uint64_t Finalize() const;
+<span class="lineNum">     217 </span>                :            : };
+<span class="lineNum">     218 </span>                :            : 
+<span class="lineNum">     219 </span>                :            : /** Optimized SipHash-2-4 implementation for uint256.
+<span class="lineNum">     220 </span>                :            :  *
+<span class="lineNum">     221 </span>                :            :  *  It is identical to:
+<span class="lineNum">     222 </span>                :            :  *    SipHasher(k0, k1)
+<span class="lineNum">     223 </span>                :            :  *      .Write(val.GetUint64(0))
+<span class="lineNum">     224 </span>                :            :  *      .Write(val.GetUint64(1))
+<span class="lineNum">     225 </span>                :            :  *      .Write(val.GetUint64(2))
+<span class="lineNum">     226 </span>                :            :  *      .Write(val.GetUint64(3))
+<span class="lineNum">     227 </span>                :            :  *      .Finalize()
+<span class="lineNum">     228 </span>                :            :  */
+<span class="lineNum">     229 </span>                :            : uint64_t SipHashUint256(uint64_t k0, uint64_t k1, const uint256&amp; val);
+<span class="lineNum">     230 </span>                :            : uint64_t SipHashUint256Extra(uint64_t k0, uint64_t k1, const uint256&amp; val, uint32_t extra);
+<span class="lineNum">     231 </span>                :            : 
+<span class="lineNum">     232 </span>                :            : #endif // BITCOIN_HASH_H
+</pre>
+      </td>
+    </tr>
+  </table>
+  <br>
+
+  <table width="100%" border=0 cellspacing=0 cellpadding=0>
+    <tr><td class="ruler"><img src="../glass.png" width=3 height=3 alt=""></td></tr>
+    <tr><td class="versionInfo">Generated by: <a href="http://ltp.sourceforge.net/coverage/lcov.php" target="_parent">LCOV version 1.13</a></td></tr>
+  </table>
+  <br>
+
+</body>
+</html>
